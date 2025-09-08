@@ -1,2 +1,5 @@
-#streamlit secrets
+# Secrets
 .streamlit/secrets.toml
+.env
+.env.*
+*.env
