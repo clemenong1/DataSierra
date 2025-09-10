@@ -4,6 +4,7 @@ Configuration settings for DataSierra
 
 import os
 from typing import Dict, Any
+from pathlib import Path
 
 
 class Config:
@@ -45,17 +46,25 @@ class Config:
     AUTO_SAVE_INTERVAL = 300  # 5 minutes in seconds
     
     # API settings
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    @classmethod
+    def _load_env_variables(cls):
+        """Load environment variables from .env file"""
+        try:
+            from dotenv import load_dotenv
+            # Load .env file from project root
+            env_path = Path(__file__).parent.parent / ".env"
+            if env_path.exists():
+                load_dotenv(env_path)
+        except ImportError:
+            pass  # python-dotenv not installed, use system env vars
+        except Exception:
+            pass  # Error loading .env file, use system env vars
     
     @classmethod
     def get_openai_api_key(cls) -> str:
-        """Get OpenAI API key from environment or Streamlit secrets"""
-        # Try Streamlit secrets first
-        try:
-            import streamlit as st
-            return st.secrets.get("OPENAI_API_KEY", cls.OPENAI_API_KEY)
-        except:
-            return cls.OPENAI_API_KEY
+        """Get OpenAI API key from environment variables"""
+        cls._load_env_variables()
+        return os.getenv("OPENAI_API_KEY")
     
     @classmethod
     def is_ai_available(cls) -> bool:

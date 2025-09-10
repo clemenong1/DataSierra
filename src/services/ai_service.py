@@ -6,6 +6,7 @@ import os
 import logging
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+from pathlib import Path
 
 from ..models.query_models import QueryRequest, QueryResponse
 from ..models.file_models import ProcessedFile
@@ -21,23 +22,39 @@ class AIService:
     """Service for AI-powered data analysis"""
     
     def __init__(self, openai_api_key: Optional[str] = None, model: str = "gpt-4"):
+        # Load environment variables from .env file
+        self._load_env_variables()
+        
         # Try to get API key from multiple sources
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         
-        # Try Streamlit secrets if available
-        if not self.openai_api_key:
-            try:
-                import streamlit as st
-                if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
-                    self.openai_api_key = st.secrets['OPENAI_API_KEY']
-            except:
-                pass
+        # Log final status
+        if self.openai_api_key:
+            logger.info("OpenAI API key is available")
+        else:
+            logger.warning("OpenAI API key not found in environment variables")
         
         self.model = model
         self.conversation_sessions = {}
         
         # Initialize AI components
         self._initialize_ai_components()
+    
+    def _load_env_variables(self):
+        """Load environment variables from .env file"""
+        try:
+            from dotenv import load_dotenv
+            # Load .env file from project root
+            env_path = Path(__file__).parent.parent.parent / ".env"
+            if env_path.exists():
+                load_dotenv(env_path)
+                logger.info("Environment variables loaded from .env file")
+            else:
+                logger.warning(".env file not found, using system environment variables")
+        except ImportError:
+            logger.warning("python-dotenv not installed, using system environment variables")
+        except Exception as e:
+            logger.error(f"Error loading .env file: {e}")
     
     def _initialize_ai_components(self):
         """Initialize AI components"""

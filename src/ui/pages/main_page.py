@@ -11,10 +11,12 @@ from ...services.file_service import FileService
 from ...services.ai_service import AIService
 from ...services.data_service import DataService
 from ...services.session_service import SessionService
+from ...services.auth_service import AuthService
 from ..components.file_upload import FileUploadComponent
 from ..components.data_preview import DataPreviewComponent
 from ..components.query_interface import QueryInterfaceComponent
 from ..components.history import HistoryComponent
+from ..components.auth_modal import AuthModalComponent
 
 
 class MainPage:
@@ -26,9 +28,11 @@ class MainPage:
         self.ai_service = AIService()
         self.data_service = DataService()
         self.session_service = SessionService()
+        self.auth_service = AuthService()
         
         # Initialize UI components
-        self.file_upload_component = FileUploadComponent(self.file_service)
+        self.auth_modal_component = AuthModalComponent(self.auth_service)
+        self.file_upload_component = FileUploadComponent(self.file_service, self.auth_modal_component)
         self.data_preview_component = DataPreviewComponent(self.data_service)
         self.query_interface_component = QueryInterfaceComponent(self.ai_service, self.data_service)
         self.history_component = HistoryComponent(self.session_service)
@@ -38,8 +42,11 @@ class MainPage:
         # Initialize session state
         self._initialize_session_state()
         
-        # Render header
+        # Render header with authentication
         self._render_header()
+        
+        # Handle authentication modal
+        self._handle_authentication()
         
         # Main content area
         col1, col2 = st.columns([2, 1])
@@ -91,13 +98,37 @@ class MainPage:
             st.session_state.query_history = []
     
     def _render_header(self):
-        """Render the main header"""
-        st.markdown("""
-        <div class="main-header">
-            <h1>DataSierra</h1>
-            <p>Upload your data files and get insights from our AI assistant</p>
-        </div>
-        """, unsafe_allow_html=True)
+        """Render the main header with authentication"""
+        # Create header with authentication button
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.markdown("""
+            <div class="main-header">
+                <h1>DataSierra</h1>
+                <p>Upload your data files and get insights from our AI assistant</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            # Render authentication button
+            show_auth_modal = self.auth_modal_component.render_auth_button()
+            if show_auth_modal:
+                st.session_state.show_auth_modal = True
+                st.rerun()
+    
+    def _handle_authentication(self):
+        """Handle authentication modal display"""
+        # Clear modal state if user is already authenticated
+        if self.auth_service.is_authenticated() and st.session_state.get('show_auth_modal', False):
+            st.session_state.show_auth_modal = False
+            st.rerun()
+        
+        if st.session_state.get('show_auth_modal', False):
+            success = self.auth_modal_component.render_auth_modal(show_modal=True)
+            if success:
+                st.session_state.show_auth_modal = False
+                st.rerun()
     
     def _render_sidebar(self):
         """Render sidebar content"""

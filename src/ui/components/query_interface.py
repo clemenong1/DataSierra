@@ -58,9 +58,9 @@ class QueryInterfaceComponent:
         # Submit button
         col1, col2, col3 = st.columns([1, 1, 2])
         with col1:
-            ask_button = st.button("Ask Sierra!", type="primary", width='stretch')
+            ask_button = st.button("Ask Sierra!", type="primary")
         with col2:
-            clear_button = st.button("🗑️ Clear", width='stretch')
+            clear_button = st.button("🗑️ Clear")
         
         if clear_button:
             st.rerun()

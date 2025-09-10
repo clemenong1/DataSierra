@@ -55,11 +55,11 @@ DataSierra is a modern, clean, and well-architected web application that allows 
    pip install -r requirements.txt
    ```
 
-3. **Set up environment variables**:
+3. **Set up OpenAI API key**:
+   Create a `.streamlit/secrets.toml` file in your project root:
    ```bash
-   cp env_template.txt .env
-   # Edit .env and add your OpenAI API key
-   export OPENAI_API_KEY="your_openai_api_key_here"
+   mkdir -p .streamlit
+   echo 'openai_api_key = "your_openai_api_key_here"' > .streamlit/secrets.toml
    ```
 
 4. **Test the installation**:
@@ -111,22 +111,20 @@ Sample datasets are available in the `public/assets/` directory:
 
 ## 🔧 Configuration
 
-### Environment Variables
+Key configuration options in `.streamlit/secrets.toml`:
 
-Key configuration options in `.env`:
-
-```bash
+```toml
 # OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4  # or gpt-3.5-turbo
+openai_api_key = "your_openai_api_key_here"
+openai_model = "gpt-4"  # or "gpt-3.5-turbo"
 
-# File Upload Limits
-MAX_FILE_SIZE_MB=200
-MAX_FILES_PER_UPLOAD=10
+# File Upload Limits (optional)
+max_file_size_mb = 200
+max_files_per_upload = 10
 
-# Rate Limiting
-OPENAI_REQUESTS_PER_MINUTE=60
-OPENAI_TOKENS_PER_MINUTE=150000
+# Rate Limiting (optional)
+openai_requests_per_minute = 60
+openai_tokens_per_minute = 150000
 ```
 
 ### Model Selection
@@ -229,7 +227,7 @@ User Upload → File Service → Data Service → AI Service → Response Proces
 ## 🔒 Security & Best Practices
 
 ### API Key Security
-- Store API keys in environment variables
+- Store API keys in `.streamlit/secrets.toml` (automatically ignored by git)
 - Never commit API keys to version control
 - Use different keys for development and production
 
@@ -253,7 +251,7 @@ streamlit run app.py
 
 ### Production Deployment
 
-1. **Set production environment variables**
+1. **Set up production secrets** in `.streamlit/secrets.toml`
 2. **Use a production WSGI server** (e.g., Gunicorn)
 3. **Configure reverse proxy** (e.g., Nginx)
 4. **Set up monitoring and logging**

@@ -50,7 +50,7 @@ class DataPreviewComponent:
         preview_data = self.data_service.get_data_preview(processed_file, n_rows)
         
         if not preview_data.empty:
-            st.dataframe(preview_data, width='stretch')
+            st.dataframe(preview_data)
             
             # Download button for preview
             csv = preview_data.to_csv(index=False)

@@ -17,7 +17,7 @@ class HistoryComponent:
     
     def render_sidebar(self):
         """Render the history component in the sidebar"""
-        st.markdown("## 🧭 Navigation")
+        st.markdown("# Navigation")
         
         # Query History
         with st.expander("📚 Query History", expanded=True):

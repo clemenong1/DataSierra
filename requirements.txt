@@ -1,54 +1,30 @@
-# DataSierra Requirements - AI-Powered Data Analysis Platform
+# DataSierra - Essential Dependencies Only
 # Core web framework
 streamlit>=1.39.0
 streamlit-extras>=0.4.0
 
-# Data processing and analysis
-pandas==1.5.3
-numpy==1.24.3
-pandasai==2.3.2
+# Data processing and analysis (core only)
+pandas>=1.5.3
+numpy>=1.24.0
+pandasai>=3.0.0
 
 # File handling
 openpyxl>=3.1.2
 xlrd>=2.0.1
 
-# Visualization
+# Basic visualization
 plotly>=5.17.0
-matplotlib>=3.8.2
-seaborn>=0.13.0
-kaleido>=0.2.1
+matplotlib>=3.8.0
 
 # AI and LLM
 openai>=1.0.0
 tiktoken>=0.5.2
 
-# Data analysis and statistics
-scikit-learn>=1.4.0
-statsmodels>=0.14.1
-
-# Geospatial (optional - can be removed if not needed)
-geopandas>=0.14.0
-shapely>=2.0.2
-pyogrio>=0.11.0
-pyproj>=3.6.1
-
-# Text processing
-wordcloud>=1.9.3
-
-# Advanced visualization
-plotnine>=0.12.0
-lida>=0.0.15
-
-# API and web services
-fastapi>=0.109.0
-uvicorn>=0.30.0
-httpx>=0.26.0
-aiofiles>=23.2.1
-
-# Utilities
+# Environment and utilities
 python-dotenv>=1.0.0
 pydantic>=2.5.0
-tenacity>=8.2.3
 
-# Python 3.13 compatibility fixes
-typing-extensions>=4.8.0
+# Firebase Authentication
+pyrebase4>=4.7.1
+firebase-admin>=6.4.0
+python-jose>=3.3.0
