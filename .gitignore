@@ -1,7 +1,8 @@
-# Secrets
-.streamlit
-.streamlit/secrets.toml
-
 __pycache__/
 *.pyc
 *.pyo
+
+public/
+
+.env
+serviceAccountKey.json
