@@ -1,26 +1,21 @@
 #!/bin/bash
 
-# AI Data Analysis Assistant Launch Script
+# DataSierra - AI-Powered Data Analysis Platform Launch Script
 
-echo "🚀 Starting AI Data Analysis Assistant..."
-echo "📊 Installing dependencies..."
-
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "�� Creating virtual environment..."
-    python3 -m venv venv
+# Check if Python 3.11 virtual environment exists
+if [ ! -d "venv_311" ]; then
+    echo "🔧 Creating Python 3.11 virtual environment..."
+    python3.11 -m venv venv_311
+    echo "📦 Installing dependencies..."
+    source venv_311/bin/activate
+    pip install --upgrade pip
+    pip install pandas==1.5.3 numpy==1.24.3 pandasai streamlit streamlit-extras
+else
+    echo "✅ Using existing Python 3.11 virtual environment"
 fi
 
 # Activate virtual environment
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-echo "✅ Dependencies installed!"
-echo "🌐 Starting Streamlit application..."
-echo "📱 Open your browser to: http://localhost:8501"
-echo ""
+source venv_311/bin/activate
 
 # Run the application
 streamlit run app.py --server.port 8501 --server.address localhost

@@ -1,164 +1,323 @@
-# AI Data Analysis Assistant
+# DataSierra - AI-Powered Data Analysis Platform
 
-A beautiful, intuitive Streamlit frontend for AI-powered data analysis with comprehensive file upload, data preview, and intelligent query capabilities.
+DataSierra is a modern, clean, and well-architected web application that allows users to upload CSV and Excel files and get intelligent insights using OpenAI's GPT models. Built with a clean architecture and object-oriented design, the system provides advanced data analysis, visualization suggestions, and code generation capabilities.
 
-## Features
+## 🚀 Features
 
-### 📁 File Upload Section
-- **Multi-format support**: Excel (.xlsx, .xls) and CSV files
-- **Drag-and-drop interface**: Modern file drop zone with visual feedback
-- **File validation**: Size limits and format checking
-- **Progress indicators**: Real-time upload status and success/error messages
-- **File metadata**: Display file size, type, and basic information
+### Core Functionality
+- **Multi-format Support**: Upload CSV, XLSX, and XLS files
+- **AI-Powered Analysis**: Get intelligent insights using OpenAI GPT-4/GPT-3.5-turbo
+- **PandasAI Integration**: Natural language data queries with direct pandas operations
+- **Multi-file Processing**: Analyze multiple datasets simultaneously
+- **Cross-dataset Analysis**: Compare and analyze relationships between different files
+- **Conversation Memory**: Maintain context across multiple queries
 
-### 👁️ Data Preview Section
-- **File/sheet selector**: Choose which uploaded file to preview
-- **Configurable rows**: Specify number of rows to display (1-100)
-- **Responsive tables**: Clean, formatted data display
-- **Dataset information**: Shape, column names, and data types
-- **Download functionality**: Export preview data as CSV
+### PandasAI Enhanced Features
+- **Natural Language Queries**: Ask questions like "What is the average sales by region?"
+- **Direct Data Analysis**: Get immediate answers without writing code
+- **Smart Visualizations**: Generate charts and graphs from natural language
+- **Data Quality Assessment**: Automatic detection of missing values and outliers
+- **Code Generation**: Get pandas code snippets for further analysis
 
-### 🤖 AI Query Interface
-- **Natural language queries**: Ask questions about your data in plain English
-- **Example prompts**: Quick-select buttons with common questions
-- **File context**: Select which dataset to query against
-- **Loading states**: Spinner animations and progress indicators
-- **Formatted responses**: Clean display of AI insights
+### Advanced Features
+- **Data Quality Assessment**: Automatic detection of missing values, outliers, and data quality issues
+- **Statistical Insights**: Comprehensive statistical analysis with summaries and correlations
+- **Business Intelligence**: Actionable business insights and recommendations
+- **Code Generation**: Python/pandas code snippets for further analysis
+- **Visualization Suggestions**: Recommended charts and plots with code
+- **Rate Limiting**: Intelligent API rate limiting and error handling
+- **Session Management**: Persistent conversation history and session tracking
 
-### 📚 Query History Panel
-- **Persistent history**: All queries saved with timestamps
-- **Search functionality**: Filter history by query or response content
-- **Rerun capability**: Click to re-execute previous queries
-- **Recent queries**: Display last 10 queries for quick access
-- **Clear history**: Option to reset query history
+### Technical Features
+- **RESTful API**: FastAPI backend with comprehensive endpoints
+- **Streamlit Frontend**: Modern, responsive web interface
+- **Error Handling**: Robust error handling and recovery
+- **Performance Optimization**: Efficient data processing and caching
+- **Scalable Architecture**: Modular design for easy extension
 
-### 💬 Feedback System
-- **Thumbs up/down**: Quick feedback on AI responses
-- **Text comments**: Optional detailed feedback
-- **Feedback tracking**: Store and display user feedback
-- **Confirmation messages**: Visual feedback on submission
+## 📋 Requirements
 
-## Design Features
+- Python 3.11+
+- OpenAI API key
+- Required Python packages (see requirements.txt)
+- PandasAI (optional but recommended for enhanced analysis)
 
-### 🎨 Visual Design
-- **Modern theme**: Professional blue and white color scheme
-- **Custom CSS**: Enhanced styling with gradients and shadows
-- **Responsive layout**: Works on different screen sizes
-- **Interactive elements**: Hover effects and smooth transitions
-- **Icons and emojis**: Visual cues for better UX
+## 🛠️ Installation
 
-### 📱 Layout Structure
-- **Multi-column layout**: Responsive design using Streamlit columns
-- **Expandable sections**: Organized content with collapsible panels
-- **Sidebar navigation**: Easy access to history and settings
-- **Tab organization**: Clean separation of different functionalities
-- **Header section**: Prominent app title and description
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd DataSierra
+   ```
 
-### 🔧 User Experience
-- **Tooltips and help**: Contextual information throughout the app
-- **Progress indicators**: Visual feedback for long operations
-- **Error handling**: Clear error messages and validation feedback
-- **Confirmation dialogs**: Safe destructive actions
-- **Loading states**: Spinners and progress bars for better UX
-
-## Installation
-
-1. **Clone or download** this repository
 2. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
-3. **Run the application**:
+
+3. **Set up environment variables**:
+   ```bash
+   cp env_template.txt .env
+   # Edit .env and add your OpenAI API key
+   export OPENAI_API_KEY="your_openai_api_key_here"
+   ```
+
+4. **Test the installation**:
    ```bash
    streamlit run app.py
    ```
-4. **Open your browser** to `http://localhost:8501`
 
-## Usage
+## 🚀 Usage
 
-### Getting Started
-1. **Upload Files**: Drag and drop or select Excel/CSV files
-2. **Preview Data**: Select a file and specify rows to display
-3. **Ask Questions**: Use the AI query interface to get insights
-4. **Review History**: Check previous queries in the sidebar
-5. **Provide Feedback**: Rate AI responses to improve the system
+### Option 1: Streamlit Web App (Recommended)
 
-### Example Questions
-- "What are the main trends in this data?"
-- "Show me correlations between variables"
-- "Summarize the key insights"
-- "What patterns do you see?"
-- "Are there any outliers?"
-- "Describe the data distribution"
+1. **Start the Streamlit app**:
+   ```bash
+   streamlit run app.py
+   ```
 
-### File Requirements
-- **Supported formats**: .xlsx, .xls, .csv
-- **Maximum file size**: 200MB per file
-- **Multiple files**: Upload and analyze multiple datasets
-- **Data validation**: Automatic format checking and error handling
+2. **Open your browser** and navigate to `http://localhost:8501`
 
-## Technical Implementation
+3. **Upload your files** and start asking questions!
 
-### Backend Integration
-The app includes placeholder functions for backend integration:
-- `upload_and_process_files()`: File processing and validation
-- `get_data_preview()`: Data preview functionality
-- `query_ai()`: AI query processing
-- `save_query_history()`: History management
-- `submit_feedback()`: Feedback collection
+### Option 2: Programmatic Usage
 
-### State Management
-- **Session state**: Persistent data across interactions
-- **File storage**: Uploaded files maintained in memory
-- **Query history**: All queries saved with metadata
-- **User preferences**: Settings and display options
+```python
+from src.services.ai.ai_service import AIService
+from src.services.file.file_service import FileService
 
-### Security Features
-- **File size limits**: Clear display of upload restrictions
-- **Format validation**: Only supported file types accepted
-- **Session management**: Automatic cleanup and timeout handling
-- **Privacy notices**: Clear data handling information
+# Initialize services
+file_service = FileService()
+ai_service = AIService()
 
-## Customization
+# Process your files and ask questions
+files = file_service.process_uploaded_files(uploaded_files)
+response = ai_service.process_query(
+    query="What are the main trends in this data?",
+    files=files,
+    session_id="my_session"
+)
 
-### Styling
-- **CSS variables**: Easy color scheme modification
-- **Component styling**: Customizable button and card designs
-- **Layout options**: Flexible column and spacing configurations
-- **Theme integration**: Compatible with Streamlit themes
+print(response['answer'])
+```
 
-### Functionality
-- **Backend integration**: Replace placeholder functions with real APIs
-- **AI model**: Connect to your preferred AI service
-- **Data processing**: Customize file handling and validation
-- **Export options**: Add additional download formats
+## 📊 Sample Data
 
-## Dependencies
+Sample datasets are available in the `public/assets/` directory:
+- `demo_sales_data.csv` - Sales transaction data
+- `demo_customer_data.csv` - Customer information
+- `demo_product_data.csv` - Product catalog
+- `demo_data.csv` - General sample data
 
-- **streamlit**: Web application framework
-- **pandas**: Data manipulation and analysis
-- **openpyxl**: Excel file reading
-- **xlrd**: Legacy Excel support
-- **streamlit-extras**: Enhanced UI components
-- **plotly**: Interactive visualizations
-- **numpy**: Numerical computing
+## 🔧 Configuration
 
-## Contributing
+### Environment Variables
+
+Key configuration options in `.env`:
+
+```bash
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4  # or gpt-3.5-turbo
+
+# File Upload Limits
+MAX_FILE_SIZE_MB=200
+MAX_FILES_PER_UPLOAD=10
+
+# Rate Limiting
+OPENAI_REQUESTS_PER_MINUTE=60
+OPENAI_TOKENS_PER_MINUTE=150000
+```
+
+### Model Selection
+
+- **GPT-4**: Best quality, higher cost, slower
+- **GPT-3.5-turbo**: Good quality, lower cost, faster
+
+## 🏗️ Architecture
+
+### Clean Architecture Structure
+
+```
+DataSierra/
+├── src/                          # Clean source code
+│   ├── models/                   # Data models & schemas
+│   │   ├── file_models.py       # File-related data models
+│   │   ├── query_models.py      # Query request/response models
+│   │   └── session_models.py    # Session management models
+│   ├── services/                 # Business logic services
+│   │   ├── ai/                  # AI service implementations
+│   │   ├── data/                # Data processing services
+│   │   ├── file/                # File handling services
+│   │   ├── ai_service.py        # Main AI service
+│   │   ├── data_service.py      # Data analysis service
+│   │   ├── file_service.py      # File processing service
+│   │   └── session_service.py   # Session management service
+│   ├── ui/                       # User interface components
+│   │   ├── components/          # Reusable UI components
+│   │   │   ├── data_preview.py  # Data preview component
+│   │   │   ├── file_upload.py   # File upload component
+│   │   │   ├── history.py       # Query history component
+│   │   │   └── query_interface.py # Query interface component
+│   │   └── pages/               # Page components
+│   │       └── main_page.py     # Main application page
+│   ├── utils/                    # Utilities & styling
+│   │   └── styling.py           # Custom styling utilities
+│   └── config.py                # Configuration management
+├── public/                       # Static assets
+│   └── assets/                  # Sample data files
+├── app.py                       # Main application entry point
+└── requirements.txt             # Dependencies
+```
+
+### Key Components
+
+- **Models**: Typed data structures for better code organization
+- **Services**: Business logic separated from UI components
+- **UI Components**: Reusable, focused components
+- **Pages**: Main page orchestrator
+- **Utils**: Styling and utility functions
+- **Config**: Centralized configuration management
+
+## 🧪 Testing
+
+### Run the Application
+```bash
+streamlit run app.py
+```
+
+### Test Individual Components
+```python
+from src.services.file.file_service import FileService
+from src.services.ai.ai_service import AIService
+from src.services.data.data_service import DataService
+
+# Test file processing
+file_service = FileService()
+processed_files = file_service.process_uploaded_files(files)
+
+# Test AI integration
+ai_service = AIService()
+response = ai_service.process_query(question, files)
+
+# Test data analysis
+data_service = DataService()
+analysis = data_service.analyze_data(files)
+```
+
+### System Components
+
+1. **Frontend (Streamlit)**: Modern, responsive user interface
+2. **Service Layer**: Clean separation of business logic
+3. **Model Layer**: Typed data structures and validation
+4. **AI Integration**: OpenAI and PandasAI integration
+5. **Session Management**: Conversation memory and context
+
+### Data Flow
+
+```
+User Upload → File Service → Data Service → AI Service → Response Processing → UI Display
+```
+
+### Key Services
+
+- **FileService**: Handles file processing and validation
+- **DataService**: Data analysis and visualization
+- **AIService**: OpenAI and PandasAI integration
+- **SessionService**: Session and conversation management
+
+## 🔒 Security & Best Practices
+
+### API Key Security
+- Store API keys in environment variables
+- Never commit API keys to version control
+- Use different keys for development and production
+
+### Rate Limiting
+- Built-in rate limiting prevents API quota exhaustion
+- Automatic retry with exponential backoff
+- Token usage tracking and optimization
+
+### Error Handling
+- Comprehensive error handling at all levels
+- Graceful degradation when services are unavailable
+- Detailed error messages for debugging
+
+## 🚀 Deployment
+
+### Local Development
+```bash
+# Streamlit app
+streamlit run app.py
+```
+
+### Production Deployment
+
+1. **Set production environment variables**
+2. **Use a production WSGI server** (e.g., Gunicorn)
+3. **Configure reverse proxy** (e.g., Nginx)
+4. **Set up monitoring and logging**
+5. **Configure SSL/TLS certificates**
+
+### Docker Deployment
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+EXPOSE 8501
+
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+```
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Add tests for new functionality
 5. Submit a pull request
 
-## License
+## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## 🆘 Support
 
-For questions, issues, or feature requests, please open an issue in the repository or contact the development team.
+### Common Issues
+
+**Q: OpenAI API key not working**
+A: Check that your API key is valid and has sufficient credits
+
+**Q: Files not uploading**
+A: Ensure files are CSV, XLSX, or XLS format and under 200MB
+
+**Q: Rate limit errors**
+A: The system includes automatic rate limiting. Wait a moment and try again
+
+**Q: Memory issues with large files**
+A: Consider splitting large files or using the API for programmatic access
+
+### Getting Help
+
+- Run the application: `streamlit run app.py`
+- Check the logs for detailed error messages
+- Review the clean architecture in the `src/` directory
+
+## 🔮 Future Enhancements
+
+- [ ] Database integration for persistent storage
+- [ ] Real-time collaboration features
+- [ ] Advanced visualization generation
+- [ ] Custom model fine-tuning
+- [ ] Multi-language support
+- [ ] Cloud deployment templates
+- [ ] Advanced analytics dashboard
+- [ ] Integration with popular BI tools
 
 ---
 
-**Built with ❤️ using Streamlit**
+**DataSierra** - Transform your data into actionable insights with the power of AI! 🚀📊

@@ -1,0 +1,154 @@
+"""
+Main page component
+"""
+
+import streamlit as st
+from typing import Dict, Any
+
+from ...models.file_models import ProcessedFile
+from ...models.query_models import QueryResponse
+from ...services.file_service import FileService
+from ...services.ai_service import AIService
+from ...services.data_service import DataService
+from ...services.session_service import SessionService
+from ..components.file_upload import FileUploadComponent
+from ..components.data_preview import DataPreviewComponent
+from ..components.query_interface import QueryInterfaceComponent
+from ..components.history import HistoryComponent
+
+
+class MainPage:
+    """Main page component that orchestrates all UI components"""
+    
+    def __init__(self):
+        # Initialize services
+        self.file_service = FileService()
+        self.ai_service = AIService()
+        self.data_service = DataService()
+        self.session_service = SessionService()
+        
+        # Initialize UI components
+        self.file_upload_component = FileUploadComponent(self.file_service)
+        self.data_preview_component = DataPreviewComponent(self.data_service)
+        self.query_interface_component = QueryInterfaceComponent(self.ai_service, self.data_service)
+        self.history_component = HistoryComponent(self.session_service)
+    
+    def render(self):
+        """Render the main page"""
+        # Initialize session state
+        self._initialize_session_state()
+        
+        # Render header
+        self._render_header()
+        
+        # Main content area
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            # File upload section
+            processed_files = self.file_upload_component.render()
+            
+            # Store processed files in session state
+            if processed_files:
+                st.session_state.processed_files = processed_files
+            
+            # Data preview section
+            if st.session_state.get('processed_files'):
+                self.data_preview_component.render(st.session_state.processed_files)
+            
+            # Query interface section
+            if st.session_state.get('processed_files'):
+                response = self.query_interface_component.render(
+                    st.session_state.processed_files,
+                    st.session_state.get('session_id', 'default')
+                )
+                
+                # Save successful queries to history
+                if response and response.success:
+                    self.session_service.save_query_history(
+                        query=response.metadata.get('original_query', ''),
+                        response=response.answer or '',
+                        file_name=response.metadata.get('file_name', '')
+                    )
+        
+        with col2:
+            # Sidebar content
+            self._render_sidebar()
+        
+        # Handle rerun queries
+        self._handle_rerun_queries()
+        
+        # Render footer
+        self._render_footer()
+    
+    def _initialize_session_state(self):
+        """Initialize session state variables"""
+        if 'processed_files' not in st.session_state:
+            st.session_state.processed_files = {}
+        if 'session_id' not in st.session_state:
+            st.session_state.session_id = "default"
+        if 'query_history' not in st.session_state:
+            st.session_state.query_history = []
+    
+    def _render_header(self):
+        """Render the main header"""
+        st.markdown("""
+        <div class="main-header">
+            <h1>DataSierra</h1>
+            <p>Upload your data files and get insights from our AI assistant</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    def _render_sidebar(self):
+        """Render sidebar content"""
+        # History component
+        self.history_component.render_sidebar()
+        
+        # App Settings
+        with st.expander("⚙️ Settings"):
+            st.markdown("**Display Options:**")
+            show_metadata = st.checkbox("Show file metadata", value=True)
+            auto_refresh = st.checkbox("Auto-refresh preview", value=False)
+            
+            st.markdown("**AI Settings:**")
+            response_length = st.selectbox("Response length", ["Short", "Medium", "Long"])
+            include_visualizations = st.checkbox("Include visualizations", value=True)
+        
+        # Help Section
+        with st.expander("❓ Help"):
+            st.markdown("""
+            **How to use:**
+            1. Upload your Excel or CSV files
+            2. Preview the data to understand its structure
+            3. Ask questions about your data
+            4. Get AI-powered insights
+            
+            **Supported formats:**
+            - Excel (.xlsx, .xls)
+            - CSV (.csv)
+            
+            **Tips:**
+            - Be specific in your questions
+            - Use the example questions as starting points
+            - Check the query history for previous insights
+            """)
+    
+    def _handle_rerun_queries(self):
+        """Handle rerun queries from history"""
+        if 'rerun_query' in st.session_state:
+            # Use a different approach to avoid session state conflicts
+            st.session_state.pending_rerun_query = st.session_state.rerun_query
+            st.session_state.pending_rerun_file = st.session_state.rerun_file
+            del st.session_state.rerun_query
+            del st.session_state.rerun_file
+            st.rerun()
+    
+    def _render_footer(self):
+        """Render the footer"""
+        st.markdown("---")
+        st.markdown("""
+        <div style="text-align: center; color: #666; padding: 1rem;">
+            <p>🤖 AI Data Analysis Assistant | Built with Streamlit</p>
+            <p>Upload your data and get intelligent insights!</p>
+        </div>
+        """, unsafe_allow_html=True)
