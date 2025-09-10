@@ -65,17 +65,17 @@ class MainPage:
             
             # Query interface section
             if st.session_state.get('processed_files'):
-                response = self.query_interface_component.render(
+                query_result = self.query_interface_component.render(
                     st.session_state.processed_files,
                     st.session_state.get('session_id', 'default')
                 )
                 
                 # Save successful queries to history
-                if response and response.success:
+                if query_result and query_result['response'].success:
                     self.session_service.save_query_history(
-                        query=response.metadata.get('original_query', ''),
-                        response=response.answer or '',
-                        file_name=response.metadata.get('file_name', '')
+                        query=query_result['original_query'],
+                        response=query_result['response'].answer or '',
+                        file_name=query_result['file_name']
                     )
         
         with col2:

@@ -92,7 +92,6 @@ class FileService:
             processed_file = self.process_file(file)
             if processed_file:
                 processed_files[file.name] = processed_file
-                logger.info(f"Successfully processed: {file.name}")
                 
         return processed_files
     

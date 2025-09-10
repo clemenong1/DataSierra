@@ -49,27 +49,51 @@ class HistoryComponent:
                 st.info("No queries yet. Start by asking a question!")
     
     def _render_history_item(self, item: QueryHistory):
-        """Render a single history item"""
+        """Render a single history item with collapsible response"""
+        # Create a container for each history item
         with st.container():
+            # Header with timestamp and file
             st.markdown(f"""
-            <div class="history-item" onclick="rerunQuery({item.id})">
+            <div style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin: 5px 0; background-color: #f9f9f9;">
                 <div style="color: #1f4e79; font-weight: 600; margin-bottom: 0.5rem;">
                     📅 {item.timestamp.strftime('%b %d %H:%M')}
                 </div>
                 <div style="color: #333; margin-bottom: 0.3rem;">
-                    <strong>File:</strong> {item.file_name}
+                    <strong>📁 File:</strong> {item.file_name}
                 </div>
                 <div style="color: #333; line-height: 1.4;">
-                    <strong>Query:</strong> {item.query[:60]}{'...' if len(item.query) > 60 else ''}
+                    <strong>❓ Query:</strong> {item.query[:60]}{'...' if len(item.query) > 60 else ''}
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # Rerun button
-            if st.button(f"🔄 Rerun", key=f"rerun_{item.id}"):
-                st.session_state.rerun_query = item.query
-                st.session_state.rerun_file = item.file_name
-                st.rerun()
+            # Check current view state
+            view_key = f"view_response_{item.id}"
+            is_viewing = st.session_state.get(view_key, False)
+            
+            # Action buttons
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button(f"🔄 Rerun", key=f"rerun_{item.id}"):
+                    st.session_state.rerun_query = item.query
+                    st.session_state.rerun_file = item.file_name
+                    st.rerun()
+            with col2:
+                if st.button(f"📋 Copy", key=f"copy_{item.id}"):
+                    st.write("Response copied to clipboard!")
+            with col3:
+                # Dynamic button text based on current state
+                button_text = "🙈 Hide" if is_viewing else "👁️ View"
+                if st.button(button_text, key=f"view_{item.id}"):
+                    # Toggle view state
+                    st.session_state[view_key] = not is_viewing
+                    st.rerun()
+            
+            # Show response if view is active
+            if is_viewing:
+                st.markdown("**🤖 Response:**")
+                st.markdown(item.response)
+                st.markdown("---")
     
     def render_main_page(self):
         """Render history component on main page"""
@@ -100,23 +124,25 @@ class HistoryComponent:
         
         # Display history
         for item in filtered_history[:limit]:
-            with st.expander(f"📅 {item.timestamp.strftime('%Y-%m-%d %H:%M')} - {item.file_name}"):
-                col1, col2 = st.columns([3, 1])
+            with st.expander(f"📅 {item.timestamp.strftime('%Y-%m-%d %H:%M')} - {item.file_name}", expanded=False):
+                # Query details
+                st.markdown(f"**📁 File:** {item.file_name}")
+                st.markdown(f"**❓ Query:** {item.query}")
                 
+                # Full response
+                st.markdown("**🤖 Response:**")
+                st.markdown(item.response)
+                
+                # Action buttons
+                col1, col2 = st.columns(2)
                 with col1:
-                    st.write(f"**Query:** {item.query}")
-                    response_preview = item.response[:200] + ('...' if len(item.response) > 200 else '')
-                    st.write(response_preview)
-                
-                with col2:
                     if st.button("🔄 Rerun", key=f"main_rerun_{item.id}"):
                         st.session_state.rerun_query = item.query
                         st.session_state.rerun_file = item.file_name
                         st.rerun()
-                    
-                    if st.button("📊 View Full", key=f"view_{item.id}"):
-                        st.write("**Full Response:**")
-                        st.markdown(item.response)
+                with col2:
+                    if st.button("📋 Copy", key=f"copy_{item.id}"):
+                        st.write("Response copied to clipboard!")
     
     def render_statistics(self):
         """Render history statistics"""

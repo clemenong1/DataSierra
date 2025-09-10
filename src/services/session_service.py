@@ -1,27 +1,29 @@
 """
-Session management service
+Session management service with Firestore integration
 """
 
 from typing import Dict, List, Optional, Any
 from datetime import datetime
-import logging
 
 from ..models.query_models import QueryHistory
 from ..models.session_models import SessionInfo
-
-logger = logging.getLogger(__name__)
+from .firestore_query_service import FirestoreQueryService
+from .auth_service import AuthService
 
 
 class SessionService:
-    """Service for managing user sessions and query history"""
+    """Service for managing user sessions and query history with Firestore integration"""
     
     def __init__(self):
         self.query_history: List[QueryHistory] = []
         self.current_query_id = 0
         self.feedback_data: Dict[int, Dict[str, Any]] = {}
+        self.firestore_service = FirestoreQueryService()
+        self.auth_service = AuthService()
     
     def save_query_history(self, query: str, response: str, file_name: str) -> int:
-        """Save query to history and return query ID"""
+        """Save query to history and Firestore, return query ID"""
+        # Save to local memory (for backward compatibility)
         query_id = self.current_query_id
         query_history_entry = QueryHistory(
             id=query_id,
@@ -34,11 +36,26 @@ class SessionService:
         self.query_history.append(query_history_entry)
         self.current_query_id += 1
         
-        logger.info(f"Saved query {query_id} to history")
+        # Save to Firestore if user is authenticated
+        if self.auth_service.is_authenticated():
+            user_uid = self.auth_service.get_user_uid()
+            if user_uid:
+                self.firestore_service.save_query(user_uid, query, response, file_name)
+        
         return query_id
     
     def get_query_history(self, limit: int = 10, search_term: Optional[str] = None) -> List[QueryHistory]:
-        """Get query history with optional filtering"""
+        """Get query history from Firestore with optional filtering"""
+        # If user is authenticated, get from Firestore
+        if self.auth_service.is_authenticated():
+            user_uid = self.auth_service.get_user_uid()
+            if user_uid:
+                if search_term:
+                    return self.firestore_service.search_user_queries(user_uid, search_term, limit)
+                else:
+                    return self.firestore_service.get_user_queries(user_uid, limit)
+        
+        # Fallback to local memory for non-authenticated users
         filtered_history = self.query_history
         
         if search_term:
@@ -54,6 +71,15 @@ class SessionService:
     
     def get_query_by_id(self, query_id: int) -> Optional[QueryHistory]:
         """Get a specific query by ID"""
+        # If user is authenticated, try to get from Firestore first
+        if self.auth_service.is_authenticated():
+            user_uid = self.auth_service.get_user_uid()
+            if user_uid:
+                firestore_query = self.firestore_service.get_query_by_id(user_uid, str(query_id))
+                if firestore_query:
+                    return firestore_query
+        
+        # Fallback to local memory
         for query in self.query_history:
             if query.id == query_id:
                 return query
@@ -73,11 +99,15 @@ class SessionService:
             if query:
                 query.feedback = feedback_type
             
-            logger.info(f"Feedback submitted for query {query_id}: {feedback_type}")
+            # Update in Firestore if user is authenticated
+            if self.auth_service.is_authenticated():
+                user_uid = self.auth_service.get_user_uid()
+                if user_uid:
+                    self.firestore_service.update_query_feedback(user_uid, str(query_id), feedback_type)
+            
             return True
             
         except Exception as e:
-            logger.error(f"Error submitting feedback: {str(e)}")
             return False
     
     def get_feedback_data(self, query_id: int) -> Optional[Dict[str, Any]]:
@@ -87,17 +117,32 @@ class SessionService:
     def clear_history(self) -> bool:
         """Clear all query history"""
         try:
+            # Clear local memory
             self.query_history = []
             self.feedback_data = {}
             self.current_query_id = 0
-            logger.info("Query history cleared")
+            
+            # Clear from Firestore if user is authenticated
+            if self.auth_service.is_authenticated():
+                user_uid = self.auth_service.get_user_uid()
+                if user_uid:
+                    self.firestore_service.clear_user_queries(user_uid)
+            
             return True
         except Exception as e:
-            logger.error(f"Error clearing history: {str(e)}")
             return False
     
     def get_history_statistics(self) -> Dict[str, Any]:
         """Get statistics about query history"""
+        # If user is authenticated, get stats from Firestore
+        if self.auth_service.is_authenticated():
+            user_uid = self.auth_service.get_user_uid()
+            if user_uid:
+                firestore_stats = self.firestore_service.get_user_query_stats(user_uid)
+                if firestore_stats:
+                    return firestore_stats
+        
+        # Fallback to local memory stats
         total_queries = len(self.query_history)
         total_feedback = len(self.feedback_data)
         
@@ -157,9 +202,7 @@ class SessionService:
             if "feedback_data" in data:
                 self.feedback_data = data["feedback_data"]
             
-            logger.info("Query history imported successfully")
             return True
             
         except Exception as e:
-            logger.error(f"Error importing history: {str(e)}")
             return False

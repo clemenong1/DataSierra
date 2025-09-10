@@ -24,7 +24,5 @@ tiktoken>=0.5.2
 python-dotenv>=1.0.0
 pydantic>=2.5.0
 
-# Firebase Authentication
-pyrebase4>=4.7.1
+# Firebase Backend
 firebase-admin>=6.4.0
-python-jose>=3.3.0

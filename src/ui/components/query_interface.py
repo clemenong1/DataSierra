@@ -18,8 +18,8 @@ class QueryInterfaceComponent:
         self.ai_service = ai_service
         self.data_service = data_service
     
-    def render(self, processed_files: Dict[str, ProcessedFile], session_id: str = "default") -> Optional[QueryResponse]:
-        """Render the query interface and return response if query is submitted"""
+    def render(self, processed_files: Dict[str, ProcessedFile], session_id: str = "default") -> Optional[Dict[str, Any]]:
+        """Render the query interface and return response data if query is submitted"""
         if not processed_files:
             st.info("Please upload files first to start asking questions.")
             return None
@@ -54,12 +54,12 @@ class QueryInterfaceComponent:
         # Clear example query after use
         if 'example_query' in st.session_state:
             del st.session_state.example_query
-        
+
         # Submit button
-        col1, col2, col3 = st.columns([1, 1, 2])
+        col1, col2, col3 = st.columns([1, 5.5, 1])
         with col1:
             ask_button = st.button("Ask Sierra!", type="primary")
-        with col2:
+        with col3:
             clear_button = st.button("🗑️ Clear")
         
         if clear_button:
@@ -70,7 +70,13 @@ class QueryInterfaceComponent:
         
         # Process query if submitted
         if ask_button and query.strip():
-            return self._process_query(query, query_file, processed_files, session_id)
+            response = self._process_query(query, query_file, processed_files, session_id)
+            if response:
+                return {
+                    'response': response,
+                    'original_query': query,
+                    'file_name': query_file
+                }
         
         return None
     
@@ -86,7 +92,8 @@ class QueryInterfaceComponent:
             "Are there any outliers?",
             "Describe the data distribution"
         ]
-        
+    
+    
         for i, example in enumerate(examples):
             with example_cols[i % 3]:
                 if st.button(f"💭 {example[:30]}...", key=f"example_{i}"):
