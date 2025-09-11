@@ -17,6 +17,7 @@ from ..components.data_preview import DataPreviewComponent
 from ..components.query_interface import QueryInterfaceComponent
 from ..components.history import HistoryComponent
 from ..components.auth_modal import AuthModalComponent
+from ..components.lida_visualization import LidaVisualizationComponent
 
 
 class MainPage:
@@ -36,6 +37,7 @@ class MainPage:
         self.data_preview_component = DataPreviewComponent(self.data_service)
         self.query_interface_component = QueryInterfaceComponent(self.ai_service, self.data_service)
         self.history_component = HistoryComponent(self.session_service)
+        self.lida_visualization_component = LidaVisualizationComponent()
     
     def render(self):
         """Render the main page"""
@@ -77,6 +79,11 @@ class MainPage:
                         response=query_result['response'].answer or '',
                         file_name=query_result['file_name']
                     )
+            
+            # LIDA Visualization section
+            processed_files = st.session_state.get('processed_files', {})
+            if processed_files:
+                self.lida_visualization_component.render(processed_files)
         
         with col2:
             # Sidebar content

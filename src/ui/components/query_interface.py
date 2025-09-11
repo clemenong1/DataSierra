@@ -136,6 +136,7 @@ class QueryInterfaceComponent:
         self._display_code_suggestions(response.code_suggestions)
         self._display_metadata(response.metadata)
         self._display_feedback_section()
+        
     
     def _display_error_response(self, response: QueryResponse):
         """Display error response"""

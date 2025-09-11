@@ -47,7 +47,7 @@ class ConversationMemory:
 class OpenAIClient:
     """Client for OpenAI API interactions"""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o"):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.model = model
         self.conversation_memory = ConversationMemory()

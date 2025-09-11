@@ -6,7 +6,7 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 
 ### Core Functionality
 - **Multi-format Support**: Upload CSV, XLSX, and XLS files
-- **AI-Powered Analysis**: Get intelligent insights using OpenAI GPT-4/GPT-3.5-turbo
+- **AI-Powered Analysis**: Get intelligent insights using OpenAI GPT-4o
 - **PandasAI Integration**: Natural language data queries with direct pandas operations
 - **Multi-file Processing**: Analyze multiple datasets simultaneously
 - **Cross-dataset Analysis**: Compare and analyze relationships between different files
@@ -116,7 +116,7 @@ Key configuration options in `.streamlit/secrets.toml`:
 ```toml
 # OpenAI Configuration
 openai_api_key = "your_openai_api_key_here"
-openai_model = "gpt-4"  # or "gpt-3.5-turbo"
+openai_model = "gpt-4o" 
 
 # File Upload Limits (optional)
 max_file_size_mb = 200
@@ -129,8 +129,7 @@ openai_tokens_per_minute = 150000
 
 ### Model Selection
 
-- **GPT-4**: Best quality, higher cost, slower
-- **GPT-3.5-turbo**: Good quality, lower cost, faster
+- **GPT-4o**: Best quality, higher cost, slower
 
 ## 🏗️ Architecture
 

@@ -1,7 +1,3 @@
-"""
-Clean Firebase Authentication Service with Firestore integration
-"""
-
 import streamlit as st
 import firebase_admin
 from firebase_admin import auth, firestore
@@ -13,15 +9,12 @@ from .firebase_config import FirebaseConfig
 
 
 class FirebaseAuthService:
-    """Clean Firebase authentication service with Firestore user storage"""
     
     def __init__(self):
-        """Initialize the authentication service"""
         self.db = FirebaseConfig.get_firestore_client()
         self._ensure_initialized()
     
     def _ensure_initialized(self) -> bool:
-        """Ensure Firebase is initialized"""
         if not FirebaseConfig.is_initialized():
             return FirebaseConfig.initialize()
         return True

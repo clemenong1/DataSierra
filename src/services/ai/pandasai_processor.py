@@ -10,7 +10,7 @@ import os
 logger = logging.getLogger(__name__)
 
 try:
-    from pandasai import PandasAI
+    from pandasai import SmartDataframe
     from pandasai.llm.openai import OpenAI
     PANDASAI_AVAILABLE = True
 except ImportError:
@@ -27,8 +27,8 @@ class PandasAIEnhancedProcessor:
         
         if self.available and self.openai_api_key:
             try:
-                llm = OpenAI(api_token=self.openai_api_key)
-                self.pandasai = PandasAI(llm, verbose=True)
+                self.llm = OpenAI(api_token=self.openai_api_key)
+                self.pandasai_available = True
             except Exception as e:
                 logger.error(f"Failed to initialize PandasAI: {str(e)}")
                 self.available = False
@@ -41,7 +41,7 @@ class PandasAIEnhancedProcessor:
     ) -> Dict[str, Any]:
         """Process natural language query using PandasAI"""
         
-        if not self.available or not self.pandasai:
+        if not self.available or not hasattr(self, 'llm'):
             return {
                 "success": False,
                 "error": "PandasAI not available",
@@ -49,18 +49,20 @@ class PandasAIEnhancedProcessor:
             }
         
         try:
-            # Convert dataframes to a list for PandasAI
-            df_list = list(dataframes.values())
-            
-            if not df_list:
+            # Convert dataframes to SmartDataframe objects
+            if not dataframes:
                 return {
                     "success": False,
                     "error": "No dataframes provided",
                     "answer": "No data available for analysis."
                 }
             
+            # Use the first dataframe for analysis
+            df_name, df = next(iter(dataframes.items()))
+            smart_df = SmartDataframe(df, config={"llm": self.llm})
+            
             # Process query with PandasAI
-            result = self.pandasai.run(df_list, prompt=query)
+            result = smart_df.chat(query)
             
             return {
                 "success": True,

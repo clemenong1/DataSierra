@@ -1,7 +1,3 @@
-"""
-Query-related data models
-"""
-
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from datetime import datetime
@@ -9,7 +5,6 @@ from datetime import datetime
 
 @dataclass
 class QueryRequest:
-    """User query request"""
     question: str
     file_name: str
     session_id: str = "default"
@@ -19,7 +14,6 @@ class QueryRequest:
 
 @dataclass
 class QueryResponse:
-    """AI query response"""
     success: bool
     answer: Optional[str] = None
     error: Optional[str] = None
@@ -37,7 +31,6 @@ class QueryResponse:
 
 @dataclass
 class QueryHistory:
-    """Query history entry"""
     id: int
     query: str
     response: str
@@ -46,7 +39,6 @@ class QueryHistory:
     feedback: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for display"""
         return {
             'id': self.id,
             'query': self.query,

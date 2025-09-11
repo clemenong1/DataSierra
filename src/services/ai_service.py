@@ -14,6 +14,7 @@ from ..models.file_models import ProcessedFile
 # Import AI modules
 from .ai.openai_client import OpenAIClient, ConversationMemory
 from .ai.pandasai_processor import PandasAIEnhancedProcessor
+from .lida_visualization_service import LidaVisualizationService
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 class AIService:
     """Service for AI-powered data analysis"""
     
-    def __init__(self, openai_api_key: Optional[str] = None, model: str = "gpt-4"):
+    def __init__(self, openai_api_key: Optional[str] = None, model: str = "gpt-4o"):
         # Load environment variables from .env file
         self._load_env_variables()
         
@@ -39,6 +40,9 @@ class AIService:
         
         # Initialize AI components
         self._initialize_ai_components()
+        
+        # Initialize LIDA visualization service
+        self.lida_service = LidaVisualizationService()
     
     def _load_env_variables(self):
         """Load environment variables from .env file"""
@@ -48,7 +52,6 @@ class AIService:
             env_path = Path(__file__).parent.parent.parent / ".env"
             if env_path.exists():
                 load_dotenv(env_path)
-                logger.info("Environment variables loaded from .env file")
             else:
                 logger.warning(".env file not found, using system environment variables")
         except ImportError:
@@ -64,7 +67,6 @@ class AIService:
                 self.pandasai_processor = PandasAIEnhancedProcessor(
                     openai_api_key=self.openai_api_key
                 )
-                logger.info("AI components initialized successfully")
             else:
                 logger.warning("OpenAI API key not provided. AI features will be limited.")
                 self.openai_client = None
@@ -398,3 +400,28 @@ class AIService:
         for session_id, memory in self.conversation_sessions.items():
             sessions_info[session_id] = memory.get_summary()
         return sessions_info
+    
+    def generate_visualizations(self, processed_files: Dict[str, ProcessedFile], 
+                              insights_context: str = "", num_visualizations: int = 5) -> List[Dict[str, Any]]:
+        """Generate visualizations using LIDA"""
+        if not self.lida_service.is_available():
+            return []
+        
+        try:
+            file_name = list(processed_files.keys())[0]
+            processed_file = processed_files[file_name]
+            
+            import pandas as pd
+            data = pd.DataFrame(processed_file.data_json)
+            
+            return self.lida_service.generate_visualizations(
+                data=data,
+                insights_context=insights_context,
+                num_visualizations=num_visualizations
+            )
+        except Exception as e:
+            return []
+    
+    def is_visualization_available(self) -> bool:
+        """Check if visualization service is available"""
+        return self.lida_service.is_available()

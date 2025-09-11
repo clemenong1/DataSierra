@@ -1,31 +1,18 @@
-"""
-Configuration settings for DataSierra
-"""
-
 import os
 from typing import Dict, Any
 from pathlib import Path
 
 
 class Config:
-    """Configuration class for DataSierra"""
-    
-    # File upload settings
-    MAX_FILE_SIZE = 200 * 1024 * 1024  # 200MB in bytes
+    MAX_FILE_SIZE = 200 * 1024 * 1024
     SUPPORTED_FORMATS = ['.xlsx', '.xls', '.csv']
     MAX_FILES_PER_UPLOAD = 10
-    
-    # Data preview settings
     DEFAULT_PREVIEW_ROWS = 10
     MAX_PREVIEW_ROWS = 1000
     MIN_PREVIEW_ROWS = 1
-    
-    # Query settings
     MAX_QUERY_LENGTH = 1000
     MAX_RESPONSE_LENGTH = 5000
     QUERY_HISTORY_LIMIT = 100
-    
-    # UI settings
     THEME_COLORS = {
         'primary': '#2e6da4',
         'secondary': '#1f4e79',
@@ -34,46 +21,36 @@ class Config:
         'danger': '#dc3545',
         'info': '#17a2b8'
     }
-    
-    # AI settings
-    AI_RESPONSE_DELAY = 1  # seconds (for simulation)
+    AI_RESPONSE_DELAY = 1
     ENABLE_VISUALIZATIONS = True
     ENABLE_FEEDBACK = True
-    DEFAULT_AI_MODEL = "gpt-4"
+    DEFAULT_AI_MODEL = "gpt-4o"
+    SESSION_TIMEOUT = 3600
+    AUTO_SAVE_INTERVAL = 300
     
-    # Session settings
-    SESSION_TIMEOUT = 3600  # 1 hour in seconds
-    AUTO_SAVE_INTERVAL = 300  # 5 minutes in seconds
-    
-    # API settings
     @classmethod
     def _load_env_variables(cls):
-        """Load environment variables from .env file"""
         try:
             from dotenv import load_dotenv
-            # Load .env file from project root
             env_path = Path(__file__).parent.parent / ".env"
             if env_path.exists():
                 load_dotenv(env_path)
         except ImportError:
-            pass  # python-dotenv not installed, use system env vars
+            pass
         except Exception:
-            pass  # Error loading .env file, use system env vars
+            pass
     
     @classmethod
     def get_openai_api_key(cls) -> str:
-        """Get OpenAI API key from environment variables"""
         cls._load_env_variables()
         return os.getenv("OPENAI_API_KEY")
     
     @classmethod
     def is_ai_available(cls) -> bool:
-        """Check if AI features are available"""
         return cls.get_openai_api_key() is not None
     
     @classmethod
     def get_config_dict(cls) -> Dict[str, Any]:
-        """Get configuration as dictionary"""
         return {
             "max_file_size": cls.MAX_FILE_SIZE,
             "supported_formats": cls.SUPPORTED_FORMATS,
