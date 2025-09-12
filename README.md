@@ -70,7 +70,7 @@ DataSierra is a modern, clean, and well-architected web application that allows 
    # Firebase Configuration
    FIREBASE_PROJECT_ID=your_firebase_project_id
    FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
-   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_firebase_private_key\n-----END PRIVATE KEY-----\n"
+   FIREBASE_PRIVATE_KEY="your_firebase_private_key"
    FIREBASE_CLIENT_EMAIL=your_firebase_client_email
    FIREBASE_CLIENT_ID=your_firebase_client_id
    FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
