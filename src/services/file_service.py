@@ -1,7 +1,3 @@
-"""
-File processing service
-"""
-
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional, Any
@@ -14,14 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 class FileService:
-    """Service for handling file operations"""
     
     def __init__(self):
         self.supported_formats = ['.csv', '.xlsx', '.xls']
         self.max_file_size = 200 * 1024 * 1024  # 200MB
         
     def validate_file(self, file: Any) -> bool:
-        """Validate uploaded file"""
         if file.size > self.max_file_size:
             logger.warning(f"File {file.name} exceeds maximum size limit")
             return False
@@ -33,7 +27,6 @@ class FileService:
         return True
     
     def process_file(self, file: Any) -> Optional[ProcessedFile]:
-        """Process a single file and return ProcessedFile object"""
         try:
             if not self.validate_file(file):
                 return None
@@ -96,7 +89,6 @@ class FileService:
         return processed_files
     
     def _read_csv(self, file: Any) -> Optional[pd.DataFrame]:
-        """Read CSV file with encoding detection"""
         try:
             # Try UTF-8 first
             df = pd.read_csv(file, encoding='utf-8', on_bad_lines='skip')
@@ -119,7 +111,6 @@ class FileService:
             return None
     
     def _read_excel(self, file: Any) -> Optional[pd.DataFrame]:
-        """Read Excel file"""
         try:
             excel_file = pd.ExcelFile(file)
             # Use the first sheet
@@ -132,7 +123,6 @@ class FileService:
             return None
     
     def _get_file_type(self, filename: str) -> str:
-        """Get file type from filename"""
         if filename.endswith('.csv'):
             return 'csv'
         elif filename.endswith(('.xlsx', '.xls')):
@@ -157,7 +147,6 @@ class FileService:
         )
     
     def _calculate_column_statistics(self, df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
-        """Calculate statistics for each column"""
         column_stats = {}
         
         for col in df.columns:
@@ -185,7 +174,6 @@ class FileService:
         return unique_values[:sample_size].tolist()
     
     def _get_column_statistics_detailed(self, series: pd.Series) -> Dict[str, Any]:
-        """Get detailed statistics for a column"""
         stats = {}
         
         try:

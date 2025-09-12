@@ -37,8 +37,9 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 
 ## 📋 Requirements
 
-- Python 3.11+
+- Python 3.9+
 - OpenAI API key
+- Firebase project with Firestore enabled
 - Required Python packages (see requirements.txt)
 - PandasAI (optional but recommended for enhanced analysis)
 
@@ -55,14 +56,36 @@ DataSierra is a modern, clean, and well-architected web application that allows 
    pip install -r requirements.txt
    ```
 
-3. **Set up OpenAI API key**:
-   Create a `.streamlit/secrets.toml` file in your project root:
+3. **Set up environment variables**:
+   Create a `.env` file in your project root:
    ```bash
-   mkdir -p .streamlit
-   echo 'openai_api_key = "your_openai_api_key_here"' > .streamlit/secrets.toml
+   touch .env
+   ```
+   
+   Add the following variables to your `.env` file:
+   ```bash
+   # OpenAI Configuration
+   OPENAI_API_KEY=your_openai_api_key_here
+   
+   # Firebase Configuration
+   FIREBASE_PROJECT_ID=your_firebase_project_id
+   FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_firebase_private_key\n-----END PRIVATE KEY-----\n"
+   FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+   FIREBASE_CLIENT_ID=your_firebase_client_id
+   FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+   FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
    ```
 
-4. **Test the installation**:
+4. **Set up Firebase**:
+   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Enable Firestore database
+   - Go to Project Settings > Service Accounts
+   - Generate a new private key and download the JSON file
+   - Extract the values from the JSON file and add them to your `.env` file
+   - Alternatively, place the downloaded `serviceAccountKey.json` file in your project root
+
+5. **Test the installation**:
    ```bash
    streamlit run app.py
    ```
@@ -101,31 +124,45 @@ response = ai_service.process_query(
 print(response['answer'])
 ```
 
-## 📊 Sample Data
-
-Sample datasets are available in the `public/assets/` directory:
-- `demo_sales_data.csv` - Sales transaction data
-- `demo_customer_data.csv` - Customer information
-- `demo_product_data.csv` - Product catalog
-- `demo_data.csv` - General sample data
-
 ## 🔧 Configuration
 
-Key configuration options in `.streamlit/secrets.toml`:
+### Environment Variables (.env file)
 
-```toml
+```bash
 # OpenAI Configuration
-openai_api_key = "your_openai_api_key_here"
-openai_model = "gpt-4o" 
+OPENAI_API_KEY=your_openai_api_key_here
 
-# File Upload Limits (optional)
-max_file_size_mb = 200
-max_files_per_upload = 10
-
-# Rate Limiting (optional)
-openai_requests_per_minute = 60
-openai_tokens_per_minute = 150000
+# Firebase Configuration
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_firebase_private_key\n-----END PRIVATE KEY-----\n"
+FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+FIREBASE_CLIENT_ID=your_firebase_client_id
+FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
 ```
+
+### Firebase Setup Steps
+
+1. **Create Firebase Project**:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Click "Create a project"
+   - Follow the setup wizard
+
+2. **Enable Firestore**:
+   - In your Firebase project, go to "Firestore Database"
+   - Click "Create database"
+   - Choose "Start in test mode" for development
+
+3. **Generate Service Account Key**:
+   - Go to Project Settings > Service Accounts
+   - Click "Generate new private key"
+   - Download the JSON file
+   - Extract the values and add them to your `.env` file
+
+4. **Alternative: Use Service Account File**:
+   - Place the downloaded `serviceAccountKey.json` in your project root
+   - The app will automatically detect and use this file
 
 ### Model Selection
 
@@ -176,32 +213,6 @@ DataSierra/
 - **Utils**: Styling and utility functions
 - **Config**: Centralized configuration management
 
-## 🧪 Testing
-
-### Run the Application
-```bash
-streamlit run app.py
-```
-
-### Test Individual Components
-```python
-from src.services.file.file_service import FileService
-from src.services.ai.ai_service import AIService
-from src.services.data.data_service import DataService
-
-# Test file processing
-file_service = FileService()
-processed_files = file_service.process_uploaded_files(files)
-
-# Test AI integration
-ai_service = AIService()
-response = ai_service.process_query(question, files)
-
-# Test data analysis
-data_service = DataService()
-analysis = data_service.analyze_data(files)
-```
-
 ### System Components
 
 1. **Frontend (Streamlit)**: Modern, responsive user interface
@@ -226,95 +237,14 @@ User Upload → File Service → Data Service → AI Service → Response Proces
 ## 🔒 Security & Best Practices
 
 ### API Key Security
-- Store API keys in `.streamlit/secrets.toml` (automatically ignored by git)
+- Store API keys in `.env` file (automatically ignored by git)
 - Never commit API keys to version control
 - Use different keys for development and production
+- Keep your Firebase service account keys secure
 
 ### Rate Limiting
 - Built-in rate limiting prevents API quota exhaustion
 - Automatic retry with exponential backoff
 - Token usage tracking and optimization
-
-### Error Handling
-- Comprehensive error handling at all levels
-- Graceful degradation when services are unavailable
-- Detailed error messages for debugging
-
-## 🚀 Deployment
-
-### Local Development
-```bash
-# Streamlit app
-streamlit run app.py
-```
-
-### Production Deployment
-
-1. **Set up production secrets** in `.streamlit/secrets.toml`
-2. **Use a production WSGI server** (e.g., Gunicorn)
-3. **Configure reverse proxy** (e.g., Nginx)
-4. **Set up monitoring and logging**
-5. **Configure SSL/TLS certificates**
-
-### Docker Deployment
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-EXPOSE 8501
-
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-### Common Issues
-
-**Q: OpenAI API key not working**
-A: Check that your API key is valid and has sufficient credits
-
-**Q: Files not uploading**
-A: Ensure files are CSV, XLSX, or XLS format and under 200MB
-
-**Q: Rate limit errors**
-A: The system includes automatic rate limiting. Wait a moment and try again
-
-**Q: Memory issues with large files**
-A: Consider splitting large files or using the API for programmatic access
-
-### Getting Help
-
-- Run the application: `streamlit run app.py`
-- Check the logs for detailed error messages
-- Review the clean architecture in the `src/` directory
-
-## 🔮 Future Enhancements
-
-- [ ] Database integration for persistent storage
-- [ ] Real-time collaboration features
-- [ ] Advanced visualization generation
-- [ ] Custom model fine-tuning
-- [ ] Multi-language support
-- [ ] Cloud deployment templates
-- [ ] Advanced analytics dashboard
-- [ ] Integration with popular BI tools
-
----
 
 **DataSierra** - Transform your data into actionable insights with the power of AI! 🚀📊
