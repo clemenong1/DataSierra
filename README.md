@@ -37,7 +37,10 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 
 ## 📋 Requirements
 
-- Python 3.9+
+- **Python 3.11+** (Recommended: Python 3.11.13)
+  - LIDA visualization requires Python 3.9+
+  - PandasAI works best with Python 3.11+
+  - All features tested with Python 3.11
 - OpenAI API key
 - Firebase project with Firestore enabled
 - Required Python packages (see requirements.txt)
@@ -51,9 +54,13 @@ DataSierra is a modern, clean, and well-architected web application that allows 
    cd DataSierra
    ```
 
-2. **Install dependencies**:
+2. **Install dependencies** (use Python 3.11):
    ```bash
-   pip install -r requirements.txt
+   # Make sure you're using Python 3.11
+   python3.11 --version
+   
+   # Install dependencies with Python 3.11
+   python3.11 -m pip install -r requirements.txt
    ```
 
 3. **Set up environment variables**:
@@ -85,9 +92,16 @@ DataSierra is a modern, clean, and well-architected web application that allows 
    - Extract the values from the JSON file and add them to your `.env` file
    - Alternatively, place the downloaded `serviceAccountKey.json` file in your project root
 
-5. **Test the installation**:
+5. **Verify your environment** (optional but recommended):
    ```bash
-   streamlit run app.py
+   # Check Python version and dependencies
+   python3.11 check_environment.py
+   ```
+
+6. **Test the installation**:
+   ```bash
+   # Run with Python 3.11 to ensure all features work
+   python3.11 -m streamlit run app.py
    ```
 
 ## 🚀 Usage
@@ -96,7 +110,8 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 
 1. **Start the Streamlit app**:
    ```bash
-   streamlit run app.py
+   # Use Python 3.11 for full functionality
+   python3.11 -m streamlit run app.py
    ```
 
 2. **Open your browser** and navigate to `http://localhost:8501`
@@ -167,6 +182,41 @@ FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
 ### Model Selection
 
 - **GPT-4o**: Best quality, higher cost, slower
+
+## 🔧 Troubleshooting
+
+### "LIDA not available" Error
+
+If you see "LIDA not available, using fallback visualization service":
+
+1. **Run the environment checker**:
+   ```bash
+   python3.11 check_environment.py
+   ```
+
+2. **Use Python 3.11**:
+   ```bash
+   python3.11 -m streamlit run app.py
+   ```
+
+3. **Reinstall dependencies with Python 3.11**:
+   ```bash
+   python3.11 -m pip install -r requirements.txt
+   ```
+
+### Firebase Authentication Issues
+
+If you see "Auth not configured":
+
+1. **Add Firebase service account credentials** to your `.env` file
+2. **Or place `serviceAccountKey.json`** in your project root
+3. **Restart the app** after adding credentials
+
+### General Issues
+
+- **Always use Python 3.11** for this project
+- **Check your `.env` file** has all required variables
+- **Restart the app** after making configuration changes
 
 ## 🏗️ Architecture
 

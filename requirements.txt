@@ -1,4 +1,7 @@
 # DataSierra - Essential Dependencies Only
+# Python version requirement (LIDA requires Python 3.9+)
+python_requires>=3.9
+
 # Core web framework
 streamlit>=1.39.0
 streamlit-extras>=0.4.0
@@ -12,9 +15,10 @@ pandasai>=3.0.0b19
 openpyxl>=3.1.2
 xlrd>=2.0.1
 
-# Basic visualization
+# Basic visualization (compatible with pandasai)
 plotly>=5.17.0
 matplotlib>=3.7.1,<3.8
+seaborn>=0.12.0
 
 # AI and LLM
 openai>=1.0.0
@@ -27,8 +31,5 @@ pydantic>=2.5.0
 # Firebase Backend
 firebase-admin>=6.4.0
 
-# Data Visualization
+# Data Visualization (requires Python 3.9+)
 lida>=0.0.1
-matplotlib>=3.7.1,<3.8
-seaborn>=0.12.0
-plotly>=5.17.0
