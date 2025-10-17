@@ -56,11 +56,16 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 
 2. **Install dependencies** (use Python 3.11):
    ```bash
-   # Make sure you're using Python 3.11
-   python3.11 --version
+   # Make sure you're using Python 3.9+
+   python3.9 --version
    
-   # Install dependencies with Python 3.11
-   python3.11 -m pip install -r requirements.txt
+   # Install dependencies with Python 3.9
+   python3.9 -m pip install -r requirements.txt
+   ```
+
+   Alternatively, you can create a python venv
+   ```bash
+   python3.9 -m venv .venv
    ```
 
 3. **Set up environment variables**:
@@ -138,85 +143,6 @@ response = ai_service.process_query(
 
 print(response['answer'])
 ```
-
-## 🔧 Configuration
-
-### Environment Variables (.env file)
-
-```bash
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Firebase Configuration
-FIREBASE_PROJECT_ID=your_firebase_project_id
-FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_firebase_private_key\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=your_firebase_client_email
-FIREBASE_CLIENT_ID=your_firebase_client_id
-FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-```
-
-### Firebase Setup Steps
-
-1. **Create Firebase Project**:
-   - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Click "Create a project"
-   - Follow the setup wizard
-
-2. **Enable Firestore**:
-   - In your Firebase project, go to "Firestore Database"
-   - Click "Create database"
-   - Choose "Start in test mode" for development
-
-3. **Generate Service Account Key**:
-   - Go to Project Settings > Service Accounts
-   - Click "Generate new private key"
-   - Download the JSON file
-   - Extract the values and add them to your `.env` file
-
-4. **Alternative: Use Service Account File**:
-   - Place the downloaded `serviceAccountKey.json` in your project root
-   - The app will automatically detect and use this file
-
-### Model Selection
-
-- **GPT-4o**: Best quality, higher cost, slower
-
-## 🔧 Troubleshooting
-
-### "LIDA not available" Error
-
-If you see "LIDA not available, using fallback visualization service":
-
-1. **Run the environment checker**:
-   ```bash
-   python3.11 check_environment.py
-   ```
-
-2. **Use Python 3.11**:
-   ```bash
-   python3.11 -m streamlit run app.py
-   ```
-
-3. **Reinstall dependencies with Python 3.11**:
-   ```bash
-   python3.11 -m pip install -r requirements.txt
-   ```
-
-### Firebase Authentication Issues
-
-If you see "Auth not configured":
-
-1. **Add Firebase service account credentials** to your `.env` file
-2. **Or place `serviceAccountKey.json`** in your project root
-3. **Restart the app** after adding credentials
-
-### General Issues
-
-- **Always use Python 3.11** for this project
-- **Check your `.env` file** has all required variables
-- **Restart the app** after making configuration changes
 
 ## 🏗️ Architecture
 

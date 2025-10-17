@@ -1,6 +1,4 @@
 # DataSierra - Essential Dependencies Only
-# Python version requirement (LIDA requires Python 3.9+)
-python_requires>=3.9
 
 # Core web framework
 streamlit>=1.39.0
