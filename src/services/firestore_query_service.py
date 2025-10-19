@@ -1,6 +1,4 @@
-"""
-Firestore-based query storage service
-"""
+# Firestore query storage service
 
 from typing import Dict, List, Optional, Any
 from datetime import datetime
@@ -11,24 +9,11 @@ from ..models.query_models import QueryHistory
 
 
 class FirestoreQueryService:
-    """Service for storing and retrieving user queries from Firestore"""
     
     def __init__(self):
         self.db = FirebaseConfig.get_firestore_client()
     
     def save_query(self, user_uid: str, query: str, response: str, file_name: str) -> Optional[str]:
-        """
-        Save a query to the user's queries subcollection
-        
-        Args:
-            user_uid: User's Firebase UID
-            query: The user's query
-            response: The AI response
-            file_name: Name of the file being queried
-            
-        Returns:
-            Document ID if successful, None otherwise
-        """
         try:
             if not self.db:
                 return None
@@ -52,17 +37,6 @@ class FirestoreQueryService:
             return None
     
     def get_user_queries(self, user_uid: str, limit: int = 10, order_by: str = 'timestamp') -> List[Dict[str, Any]]:
-        """
-        Get user's queries from Firestore
-        
-        Args:
-            user_uid: User's Firebase UID
-            limit: Maximum number of queries to return
-            order_by: Field to order by (default: timestamp)
-            
-        Returns:
-            List of query dictionaries (like visualizations)
-        """
         try:
             if not self.db:
                 return []
@@ -266,17 +240,6 @@ class FirestoreQueryService:
             return {}
     
     def update_query_helpfulness(self, user_uid: str, query_id: str, is_helpful: bool) -> bool:
-        """
-        Update the helpfulness status of a query
-        
-        Args:
-            user_uid: User's Firebase UID
-            query_id: Query document ID
-            is_helpful: Whether the query was helpful
-            
-        Returns:
-            True if successful
-        """
         try:
             if not self.db:
                 return False

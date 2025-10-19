@@ -8,14 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FirebaseStorageService:
-    """Service for handling Firebase Storage operations"""
     
     def __init__(self):
         self.bucket_name = f"{os.getenv('FIREBASE_PROJECT_ID', 'datasierra-5c806')}.firebasestorage.app"
         self._bucket = None
     
     def _get_bucket(self):
-        """Get Firebase Storage bucket"""
         if self._bucket is None:
             try:
                 self._bucket = storage.bucket(name=self.bucket_name)
@@ -25,7 +23,6 @@ class FirebaseStorageService:
         return self._bucket
 
     def upload_file(self, file_data: bytes, filename: str, user_id: str, content_type: str) -> Optional[Dict[str, Any]]:
-        """Uploads a file to Firebase Storage."""
         bucket = self._get_bucket()
         if not bucket:
             return None

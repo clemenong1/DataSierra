@@ -1,6 +1,4 @@
-"""
-Main page component
-"""
+# Main page component
 
 import streamlit as st
 from typing import Dict, Any
@@ -21,7 +19,6 @@ from ..components.lida_visualization import LidaVisualizationComponent
 
 
 class MainPage:
-    """Main page component that orchestrates all UI components"""
     
     def __init__(self):
         # Initialize services
@@ -40,7 +37,6 @@ class MainPage:
         self.lida_visualization_component = LidaVisualizationComponent()
     
     def render(self):
-        """Render the main page"""
         # Initialize session state
         self._initialize_session_state()
         

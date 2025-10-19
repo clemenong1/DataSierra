@@ -1,6 +1,4 @@
-"""
-Query history component
-"""
+# Query history component
 
 import streamlit as st
 from typing import Dict, List, Any, Optional
@@ -12,7 +10,6 @@ from ...services.firestore_query_service import FirestoreQueryService
 
 
 class HistoryComponent:
-    """Component for displaying and managing query history"""
     
     def __init__(self, session_service: SessionService):
         self.session_service = session_service
@@ -20,7 +17,6 @@ class HistoryComponent:
         self.firestore_query_service = FirestoreQueryService()
     
     def render_sidebar(self):
-        """Render the history component in the sidebar"""
         st.markdown("# Navigation")
         
         # Query History
@@ -120,7 +116,6 @@ class HistoryComponent:
                 st.markdown("---")
     
     def render_main_page(self):
-        """Render history component on main page"""
         st.markdown("### 📚 Query History")
         
         # Get current user
@@ -391,7 +386,6 @@ class HistoryComponent:
                 st.markdown("---")
     
     def _escape_html(self, text: str) -> str:
-        """Escape HTML characters in text to prevent rendering issues"""
         if not text:
             return ""
         
@@ -411,7 +405,6 @@ class HistoryComponent:
         return escaped_text
     
     def _render_firestore_query_item(self, query: Dict[str, Any]):
-        """Render a single Firestore query item (works exactly like visualizations)"""
         with st.container():
             # Header with timestamp and query
             # Format the created_at timestamp properly

@@ -5,22 +5,11 @@ from firebase_admin import firestore
 from .firebase_config import FirebaseConfig
 
 class VisualizationService:
-    """Service for managing user visualizations stored in Firestore"""
     
     def __init__(self):
         self.db = FirebaseConfig.get_firestore_client()
     
     def save_visualization(self, user_uid: str, viz_data: Dict[str, Any]) -> Optional[str]:
-        """
-        Save a visualization's metadata to the user's visualisations subcollection.
-        
-        Args:
-            user_uid: User's Firebase UID
-            viz_data: Dictionary containing visualization metadata (file_url, query, etc.)
-            
-        Returns:
-            Document ID if successful, None otherwise
-        """
         try:
             if not self.db:
                 return None

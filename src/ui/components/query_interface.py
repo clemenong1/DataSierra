@@ -1,6 +1,4 @@
-"""
-Query interface component
-"""
+# Query interface component
 
 import streamlit as st
 from typing import Dict, Any, Optional
@@ -12,7 +10,6 @@ from ...services.data_service import DataService
 
 
 class QueryInterfaceComponent:
-    """Component for handling user queries and AI interactions"""
     
     def __init__(self, ai_service: AIService, data_service: DataService):
         self.ai_service = ai_service
@@ -261,7 +258,6 @@ class QueryInterfaceComponent:
                     st.success("Comment submitted!")
     
     def _escape_html(self, text: str) -> str:
-        """Escape HTML characters in text to prevent rendering issues"""
         if not text:
             return ""
         
