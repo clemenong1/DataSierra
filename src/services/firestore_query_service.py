@@ -51,7 +51,7 @@ class FirestoreQueryService:
         except Exception as e:
             return None
     
-    def get_user_queries(self, user_uid: str, limit: int = 10, order_by: str = 'timestamp') -> List[QueryHistory]:
+    def get_user_queries(self, user_uid: str, limit: int = 10, order_by: str = 'timestamp') -> List[Dict[str, Any]]:
         """
         Get user's queries from Firestore
         
@@ -61,7 +61,7 @@ class FirestoreQueryService:
             order_by: Field to order by (default: timestamp)
             
         Returns:
-            List of QueryHistory objects
+            List of query dictionaries (like visualizations)
         """
         try:
             if not self.db:
@@ -74,19 +74,14 @@ class FirestoreQueryService:
             query = queries_ref.order_by(order_by, direction=firestore.Query.DESCENDING).limit(limit)
             docs = query.stream()
             
-            query_history = []
+            queries = []
             for doc in docs:
                 data = doc.to_dict()
-                query_history.append(QueryHistory(
-                    id=hash(doc.id) % (2**31),  # Convert string ID to integer
-                    query=data.get('query', ''),
-                    response=data.get('response', ''),
-                    file_name=data.get('file_name', ''),
-                    timestamp=data.get('timestamp', datetime.utcnow()),
-                    feedback=data.get('feedback')
-                ))
+                # Add document ID to the data
+                data['id'] = doc.id
+                queries.append(data)
             
-            return query_history
+            return queries
             
         except Exception as e:
             return []
@@ -269,3 +264,28 @@ class FirestoreQueryService:
             
         except Exception as e:
             return {}
+    
+    def update_query_helpfulness(self, user_uid: str, query_id: str, is_helpful: bool) -> bool:
+        """
+        Update the helpfulness status of a query
+        
+        Args:
+            user_uid: User's Firebase UID
+            query_id: Query document ID
+            is_helpful: Whether the query was helpful
+            
+        Returns:
+            True if successful
+        """
+        try:
+            if not self.db:
+                return False
+            
+            doc_ref = self.db.collection('users').document(user_uid).collection('queries').document(query_id)
+            doc_ref.update({
+                'is_helpful': is_helpful,
+                'helpfulness_updated_at': datetime.utcnow().isoformat()
+            })
+            return True
+        except Exception as e:
+            return False

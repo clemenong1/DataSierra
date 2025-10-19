@@ -8,6 +8,7 @@ from typing import Dict, List, Any, Optional
 from ...models.query_models import QueryHistory
 from ...services.session_service import SessionService
 from ...services.visualization_service import VisualizationService
+from ...services.firestore_query_service import FirestoreQueryService
 
 
 class HistoryComponent:
@@ -16,6 +17,7 @@ class HistoryComponent:
     def __init__(self, session_service: SessionService):
         self.session_service = session_service
         self.viz_service = VisualizationService()
+        self.firestore_query_service = FirestoreQueryService()
     
     def render_sidebar(self):
         """Render the history component in the sidebar"""
@@ -23,32 +25,32 @@ class HistoryComponent:
         
         # Query History
         with st.expander("📚 Query History", expanded=True):
-            history = self.session_service.get_query_history(limit=10)
-            
-            if history:
-                # Search functionality
-                search_term = st.text_input("🔍 Search history:", key="history_search")
-                
-                # Filter history based on search
-                filtered_history = history
-                if search_term:
-                    filtered_history = [
-                        item for item in history
-                        if search_term.lower() in item.query.lower() or 
-                           search_term.lower() in item.response.lower()
-                    ]
-                
-                # Display history items
-                for item in filtered_history:
-                    self._render_history_item(item)
-                
-                # Clear history button
-                if st.button("🗑️ Clear History", type="secondary"):
-                    if self.session_service.clear_history():
-                        st.success("History cleared!")
-                        st.rerun()
+            # Get current user
+            user_id = st.session_state.get('user', {}).get('uid')
+            if not user_id:
+                st.info("Please log in to view query history")
             else:
-                st.info("No queries yet. Start by asking a question!")
+                # Get queries from Firestore
+                queries = self.firestore_query_service.get_user_queries(user_id, limit=10)
+                
+                if queries:
+                    # Search functionality
+                    search_term = st.text_input("🔍 Search history:", key="history_search")
+                    
+                    # Filter queries based on search
+                    filtered_queries = queries
+                    if search_term:
+                        filtered_queries = [
+                            query for query in queries
+                            if search_term.lower() in query.get('query', '').lower() or 
+                               search_term.lower() in query.get('response', '').lower()
+                        ]
+                    
+                    # Display queries
+                    for query in filtered_queries:
+                        self._render_firestore_query_item(query)
+                else:
+                    st.info("No queries yet. Start by asking a question!")
         
         # Visualization History
         with st.expander("📊 Visualizations History", expanded=True):
@@ -77,17 +79,9 @@ class HistoryComponent:
             view_key = f"view_response_{item.id}"
             is_viewing = st.session_state.get(view_key, False)
             
-            # Action buttons
-            col1, col2, col3 = st.columns(3)
+            # Action buttons (matching visualization history format)
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
-                if st.button(f"🔄 Rerun", key=f"rerun_{item.id}"):
-                    st.session_state.rerun_query = item.query
-                    st.session_state.rerun_file = item.file_name
-                    st.rerun()
-            with col2:
-                if st.button(f"📋 Copy", key=f"copy_{item.id}"):
-                    st.write("Response copied to clipboard!")
-            with col3:
                 # Dynamic button text based on current state
                 button_text = "🙈 Hide" if is_viewing else "👁️ View"
                 if st.button(button_text, key=f"view_{item.id}"):
@@ -95,20 +89,50 @@ class HistoryComponent:
                     st.session_state[view_key] = not is_viewing
                     st.rerun()
             
+            with col2:
+                if st.button("👍", key=f"thumbs_up_{item.id}"):
+                    # TODO: Implement query helpfulness feedback
+                    st.success("Marked as helpful!")
+                    st.rerun()
+            
+            with col3:
+                if st.button("👎", key=f"thumbs_down_{item.id}"):
+                    # TODO: Implement query helpfulness feedback
+                    st.success("Marked as not helpful!")
+                    st.rerun()
+            
+            with col4:
+                if st.button("🗑️", key=f"delete_{item.id}"):
+                    # Delete query from database
+                    user_id = st.session_state.get('user', {}).get('uid')
+                    if user_id and self.firestore_query_service.delete_query(user_id, str(item.id)):
+                        st.success("Query deleted!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to delete query")
+            
             # Show response if view is active
             if is_viewing:
                 st.markdown("**🤖 Response:**")
-                st.markdown(item.response)
+                # Escape HTML characters in the response to prevent rendering issues
+                escaped_response = self._escape_html(item.response)
+                st.markdown(escaped_response)
                 st.markdown("---")
     
     def render_main_page(self):
         """Render history component on main page"""
         st.markdown("### 📚 Query History")
         
-        # Get all history
-        history = self.session_service.get_query_history(limit=50)
+        # Get current user
+        user_id = st.session_state.get('user', {}).get('uid')
+        if not user_id:
+            st.info("Please log in to view query history")
+            return
         
-        if not history:
+        # Get queries from Firestore
+        queries = self.firestore_query_service.get_user_queries(user_id, limit=50)
+        
+        if not queries:
             st.info("No query history available.")
             return
         
@@ -119,36 +143,68 @@ class HistoryComponent:
         with col2:
             limit = st.selectbox("Show last:", [10, 25, 50, 100], index=1)
         
-        # Filter history
-        filtered_history = history
+        # Filter queries based on search
+        filtered_queries = queries
         if search_term:
-            filtered_history = [
-                item for item in history
-                if search_term.lower() in item.query.lower() or 
-                   search_term.lower() in item.response.lower()
+            filtered_queries = [
+                query for query in queries
+                if search_term.lower() in query.get('query', '').lower() or 
+                   search_term.lower() in query.get('response', '').lower()
             ]
         
-        # Display history
-        for item in filtered_history[:limit]:
-            with st.expander(f"📅 {item.timestamp.strftime('%Y-%m-%d %H:%M')} - {item.file_name}", expanded=False):
+        # Display queries
+        for query in filtered_queries[:limit]:
+            # Format timestamp
+            created_at = query.get('created_at', 'Unknown date')
+            if hasattr(created_at, 'strftime'):
+                formatted_date = created_at.strftime('%Y-%m-%d %H:%M')
+            elif isinstance(created_at, str):
+                formatted_date = created_at[:16] if len(created_at) > 16 else created_at
+            else:
+                formatted_date = 'Unknown date'
+            
+            with st.expander(f"📅 {formatted_date} - {query.get('file_name', 'Unknown file')}", expanded=False):
                 # Query details
-                st.markdown(f"**📁 File:** {item.file_name}")
-                st.markdown(f"**❓ Query:** {item.query}")
+                st.markdown(f"**📁 File:** {query.get('file_name', 'Unknown file')}")
+                st.markdown(f"**❓ Query:** {query.get('query', 'No query')}")
                 
                 # Full response
                 st.markdown("**🤖 Response:**")
-                st.markdown(item.response)
+                escaped_response = self._escape_html(query.get('response', ''))
+                st.markdown(escaped_response)
                 
-                # Action buttons
-                col1, col2 = st.columns(2)
+                # Action buttons (matching visualization history format)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    if st.button("🔄 Rerun", key=f"main_rerun_{item.id}"):
-                        st.session_state.rerun_query = item.query
-                        st.session_state.rerun_file = item.file_name
-                        st.rerun()
+                    if st.button("👁️ View", key=f"main_view_{query.get('id', 'unknown')}"):
+                        st.info("Use the sidebar to view full response")
                 with col2:
-                    if st.button("📋 Copy", key=f"copy_{item.id}"):
-                        st.write("Response copied to clipboard!")
+                    if st.button("👍", key=f"main_thumbs_up_{query.get('id', 'unknown')}"):
+                        # Update query helpfulness in database
+                        user_id = st.session_state.get('user', {}).get('uid')
+                        if user_id and self.firestore_query_service.update_query_helpfulness(user_id, query.get('id'), True):
+                            st.success("Marked as helpful!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update feedback")
+                with col3:
+                    if st.button("👎", key=f"main_thumbs_down_{query.get('id', 'unknown')}"):
+                        # Update query helpfulness in database
+                        user_id = st.session_state.get('user', {}).get('uid')
+                        if user_id and self.firestore_query_service.update_query_helpfulness(user_id, query.get('id'), False):
+                            st.success("Marked as not helpful!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update feedback")
+                with col4:
+                    if st.button("🗑️", key=f"main_delete_{query.get('id', 'unknown')}"):
+                        # Delete query from database
+                        user_id = st.session_state.get('user', {}).get('uid')
+                        if user_id and self.firestore_query_service.delete_query(user_id, query.get('id')):
+                            st.success("Query deleted!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete query")
     
     def render_statistics(self):
         """Render history statistics"""
@@ -332,4 +388,106 @@ class HistoryComponent:
                 else:
                     st.warning("No visualization file found")
                 
+                st.markdown("---")
+    
+    def _escape_html(self, text: str) -> str:
+        """Escape HTML characters in text to prevent rendering issues"""
+        if not text:
+            return ""
+        
+        # Replace common HTML characters with their escaped equivalents
+        html_escape_table = {
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&#x27;",
+            ">": "&gt;",
+            "<": "&lt;",
+        }
+        
+        escaped_text = text
+        for char, escaped in html_escape_table.items():
+            escaped_text = escaped_text.replace(char, escaped)
+        
+        return escaped_text
+    
+    def _render_firestore_query_item(self, query: Dict[str, Any]):
+        """Render a single Firestore query item (works exactly like visualizations)"""
+        with st.container():
+            # Header with timestamp and query
+            # Format the created_at timestamp properly
+            created_at = query.get('created_at', 'Unknown date')
+            if hasattr(created_at, 'strftime'):
+                # It's a datetime object, format it
+                formatted_date = created_at.strftime('%b %d %H:%M')
+            elif isinstance(created_at, str):
+                # It's already a string, use it as is
+                formatted_date = created_at[:10] + ' ' + created_at[11:16] if len(created_at) > 16 else created_at
+            else:
+                # Fallback
+                formatted_date = 'Unknown date'
+            
+            st.markdown(f"""
+            <div style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin: 5px 0; background-color: #f9f9f9;">
+                <div style="color: #1f4e79; font-weight: 600; margin-bottom: 0.5rem;">
+                    📅 {formatted_date}
+                </div>
+                <div style="color: #333; margin-bottom: 0.3rem;">
+                    <strong>📁 File:</strong> {query.get('file_name', 'Unknown file')}
+                </div>
+                <div style="color: #333; line-height: 1.4;">
+                    <strong>❓ Query:</strong> {query.get('query', 'No query')[:60]}{'...' if len(query.get('query', '')) > 60 else ''}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Check current view state
+            view_key = f"view_response_{query.get('id', 'unknown')}"
+            is_viewing = st.session_state.get(view_key, False)
+            
+            # Action buttons (matching visualization history format)
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                # Dynamic button text based on current state
+                button_text = "🙈 Hide" if is_viewing else "👁️ View"
+                if st.button(button_text, key=f"view_{query.get('id', 'unknown')}"):
+                    # Toggle view state
+                    st.session_state[view_key] = not is_viewing
+                    st.rerun()
+            
+            with col2:
+                if st.button("👍", key=f"thumbs_up_{query.get('id', 'unknown')}"):
+                    # Update query helpfulness in database
+                    user_id = st.session_state.get('user', {}).get('uid')
+                    if user_id and self.firestore_query_service.update_query_helpfulness(user_id, query.get('id'), True):
+                        st.success("Marked as helpful!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to update feedback")
+            
+            with col3:
+                if st.button("👎", key=f"thumbs_down_{query.get('id', 'unknown')}"):
+                    # Update query helpfulness in database
+                    user_id = st.session_state.get('user', {}).get('uid')
+                    if user_id and self.firestore_query_service.update_query_helpfulness(user_id, query.get('id'), False):
+                        st.success("Marked as not helpful!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to update feedback")
+            
+            with col4:
+                if st.button("🗑️", key=f"delete_{query.get('id', 'unknown')}"):
+                    # Delete query from database
+                    user_id = st.session_state.get('user', {}).get('uid')
+                    if user_id and self.firestore_query_service.delete_query(user_id, query.get('id')):
+                        st.success("Query deleted!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to delete query")
+            
+            # Show response if view is active
+            if is_viewing:
+                st.markdown("**🤖 Response:**")
+                # Escape HTML characters in the response to prevent rendering issues
+                escaped_response = self._escape_html(query.get('response', ''))
+                st.markdown(escaped_response)
                 st.markdown("---")

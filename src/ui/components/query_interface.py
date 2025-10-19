@@ -110,7 +110,9 @@ class QueryInterfaceComponent:
         st.markdown("### 🤖 DataSierra's Response")
         st.markdown(f"**Query:** {query}")
         st.markdown("**Response:**")
-        st.markdown(response.answer)
+        # Escape HTML characters in the response to prevent rendering issues
+        escaped_response = self._escape_html(response.answer)
+        st.markdown(escaped_response)
         
         # Display additional insights
         self._display_data_quality_insights(response.data_quality_insights)
@@ -257,3 +259,23 @@ class QueryInterfaceComponent:
             if st.button("💬 Submit Comment", key="submit_comment"):
                 if feedback_comment:
                     st.success("Comment submitted!")
+    
+    def _escape_html(self, text: str) -> str:
+        """Escape HTML characters in text to prevent rendering issues"""
+        if not text:
+            return ""
+        
+        # Replace common HTML characters with their escaped equivalents
+        html_escape_table = {
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&#x27;",
+            ">": "&gt;",
+            "<": "&lt;",
+        }
+        
+        escaped_text = text
+        for char, escaped in html_escape_table.items():
+            escaped_text = escaped_text.replace(char, escaped)
+        
+        return escaped_text
