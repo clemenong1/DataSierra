@@ -8,6 +8,7 @@ from pathlib import Path
 class FirebaseConfig:
     _app: Optional[firebase_admin.App] = None
     _db: Optional[firestore.Client] = None
+    _last_error: Optional[str] = None
     
     @classmethod
     def initialize(cls, service_account_path: Optional[str] = None) -> bool:
@@ -22,15 +23,20 @@ class FirebaseConfig:
                 service_account_path = cls._find_service_account_file()
             
             if not service_account_path or not Path(service_account_path).exists():
+                cls._last_error = (
+                    f"Service account file not found. Searched paths: {service_account_path}"
+                )
                 return False
             
             cred = credentials.Certificate(service_account_path)
             cls._app = firebase_admin.initialize_app(cred)
             cls._db = firestore.client()
             
+            cls._last_error = None
             return True
             
         except Exception as e:
+            cls._last_error = str(e)
             return False
     
     @classmethod
@@ -70,11 +76,19 @@ class FirebaseConfig:
             
             required_fields = ["project_id", "private_key", "client_email"]
             if all(firebase_config.get(field) for field in required_fields):
-                cred = credentials.Certificate(firebase_config)
-                cls._app = firebase_admin.initialize_app(cred)
-                cls._db = firestore.client()
-                return True
-            
+                try:
+                    cred = credentials.Certificate(firebase_config)
+                    cls._app = firebase_admin.initialize_app(cred)
+                    cls._db = firestore.client()
+                    cls._last_error = None
+                    return True
+                except Exception as e:
+                    cls._last_error = str(e)
+                    return False
+
+            cls._last_error = (
+                "Firebase environment variables not fully configured (need FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL)"
+            )
             return False
             
         except Exception as e:
@@ -91,3 +105,8 @@ class FirebaseConfig:
     @classmethod
     def is_initialized(cls) -> bool:
         return cls._app is not None and cls._db is not None
+
+    @classmethod
+    def get_initialization_error(cls) -> Optional[str]:
+        """Return a human-readable initialization error if initialization failed."""
+        return cls._last_error

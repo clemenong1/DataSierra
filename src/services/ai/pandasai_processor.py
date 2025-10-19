@@ -13,9 +13,15 @@ try:
     from pandasai import SmartDataframe
     from pandasai.llm.openai import OpenAI
     PANDASAI_AVAILABLE = True
-except ImportError:
+    PANDASAI_IMPORT_ERROR = None
+except ImportError as e:
     PANDASAI_AVAILABLE = False
-
+    PANDASAI_IMPORT_ERROR = str(e)
+except Exception as e:
+    # Catch any other exceptions raised during import (e.g., runtime/version issues)
+    PANDASAI_AVAILABLE = False
+    PANDASAI_IMPORT_ERROR = str(e)
+    logger.warning(f"PandasAI import failed with non-ImportError: {e}")
 
 class PandasAIEnhancedProcessor:
     """Enhanced processor for PandasAI natural language queries"""

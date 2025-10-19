@@ -5,28 +5,113 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 ## 🚀 Features
 
 ### Core Functionality
-- **Multi-format Uploads: Supports CSV, XLSX, and XLS files
-- **AI-Powered Insights: Analyze data using OpenAI GPT-4o and PandasAI
-- **Natural Language Queries: Ask questions like “What’s the average sales by region?”
-- **Multi-file & Cross-dataset Analysis: Compare and correlate multiple datasets
-- **Smart Visualizations: Auto-generate charts and graphs from queries
-- **Code Generation: Get ready-to-use pandas code snippets
-- **Conversation Memory: Maintains context across multiple queries
+- **Multi-format Support**: Upload CSV, XLSX, and XLS files
+- **AI-Powered Analysis**: Get intelligent insights using OpenAI GPT-4o
+- **PandasAI Integration**: Natural language data queries with direct pandas operations
+- **Multi-file Processing**: Analyze multiple datasets simultaneously
+- **Cross-dataset Analysis**: Compare and analyze relationships between different files
+- **Conversation Memory**: Maintain context across multiple queries
 
-### Advanced Analytics
-- **Data Quality Assessment: Detect missing values, outliers, and anomalies
-- **Statistical Insights: Summaries, correlations, and trends
-- **Business Intelligence: Actionable recommendations and insights
-- **Visualization Suggestions: Recommended charts with example code
+### PandasAI Enhanced Features
+- **Natural Language Queries**: Ask questions like "What is the average sales by region?"
+- **Direct Data Analysis**: Get immediate answers without writing code
+- **Smart Visualizations**: Generate charts and graphs from natural language
+- **Data Quality Assessment**: Automatic detection of missing values and outliers
+- **Code Generation**: Get pandas code snippets for further analysis
 
-### Tech Stack
-- **Frontend: Streamlit (modern and responsive interface)
-- **Backend: FastAPI (RESTful API with rate limiting & robust error handling)
-- **Performance: Optimized data processing, caching, and scalable architecture
+### Advanced Features
+- **Data Quality Assessment**: Automatic detection of missing values, outliers, and data quality issues
+- **Statistical Insights**: Comprehensive statistical analysis with summaries and correlations
+- **Business Intelligence**: Actionable business insights and recommendations
+- **Code Generation**: Python/pandas code snippets for further analysis
+- **Visualization Suggestions**: Recommended charts and plots with code
+- **Rate Limiting**: Intelligent API rate limiting and error handling
+- **Session Management**: Persistent conversation history and session tracking
+
+### Technical Features
+- **RESTful API**: FastAPI backend with comprehensive endpoints
+- **Streamlit Frontend**: Modern, responsive web interface
+- **Error Handling**: Robust error handling and recovery
+- **Performance Optimization**: Efficient data processing and caching
+- **Scalable Architecture**: Modular design for easy extension
+
+## 📋 Requirements
+
+- **Python 3.11+** (Recommended: Python 3.11.13)
+  - LIDA visualization requires Python 3.9+
+  - PandasAI works best with Python 3.11+
+  - All features tested with Python 3.11
+- OpenAI API key
+- Firebase project with Firestore enabled
+- Required Python packages (see requirements.txt)
+- PandasAI (optional but recommended for enhanced analysis)
+
+## 🛠️ Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd DataSierra
+   ```
+
+2. **Install dependencies** (use Python 3.11):
+   ```bash
+   # Make sure you're using Python 3.9+
+   python3.9 --version
+   
+   # Install dependencies with Python 3.9
+   python3.9 -m pip install -r requirements.txt
+   ```
+
+   Alternatively, you can create a python venv
+   ```bash
+   python3.9 -m venv .venv
+   ```
+
+3. **Set up environment variables**:
+   Create a `.env` file in your project root:
+   ```bash
+   touch .env
+   ```
+   
+   Add the following variables to your `.env` file:
+   ```bash
+   # OpenAI Configuration
+   OPENAI_API_KEY=your_openai_api_key_here
+   
+   # Firebase Configuration
+   FIREBASE_PROJECT_ID=your_firebase_project_id
+   FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
+   FIREBASE_PRIVATE_KEY="your_firebase_private_key"
+   FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+   FIREBASE_CLIENT_ID=your_firebase_client_id
+   FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+   FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
+   ```
+
+4. **Set up Firebase**:
+   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Enable Firestore database
+   - Go to Project Settings > Service Accounts
+   - Generate a new private key and download the JSON file
+   - Extract the values from the JSON file and add them to your `.env` file
+   - Alternatively, place the downloaded `serviceAccountKey.json` file in your project root
+
+5. **Verify your environment** (optional but recommended):
+   ```bash
+   # Check Python version and dependencies
+   python3.11 check_environment.py
+   ```
+
+6. **Test the installation**:
+   ```bash
+   # Run with Python 3.11 to ensure all features work
+   python3.11 -m streamlit run app.py
+   ```
 
 ## 🚀 Usage
 
-### Streamlit Web App
+### Option 1: Streamlit Web App (Recommended)
 
 1. **Start the Streamlit app**:
    ```bash
@@ -37,6 +122,27 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 2. **Open your browser** and navigate to `http://localhost:8501`
 
 3. **Upload your files** and start asking questions!
+
+### Option 2: Programmatic Usage
+
+```python
+from src.services.ai.ai_service import AIService
+from src.services.file.file_service import FileService
+
+# Initialize services
+file_service = FileService()
+ai_service = AIService()
+
+# Process your files and ask questions
+files = file_service.process_uploaded_files(uploaded_files)
+response = ai_service.process_query(
+    query="What are the main trends in this data?",
+    files=files,
+    session_id="my_session"
+)
+
+print(response['answer'])
+```
 
 ## 🏗️ Architecture
 
@@ -73,19 +179,6 @@ DataSierra/
 ├── app.py                       # Main application entry point
 └── requirements.txt             # Dependencies
 ```
-
-### Data Flow
-
-```
-User Upload → File Service → Data Service → AI Service → Response Processing → UI Display
-```
-
-### Key Services
-
-- **FileService**: Handles file processing and validation
-- **DataService**: Data analysis and visualization
-- **AIService**: OpenAI and PandasAI integration
-- **SessionService**: Session and conversation management
 
 ## 🔒 Security & Best Practices
 

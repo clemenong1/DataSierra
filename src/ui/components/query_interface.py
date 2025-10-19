@@ -65,8 +65,6 @@ class QueryInterfaceComponent:
         if clear_button:
             st.rerun()
         
-        # Example questions
-        self._render_example_questions()
         
         # Process query if submitted
         if ask_button and query.strip():
@@ -79,19 +77,6 @@ class QueryInterfaceComponent:
                 }
         
         return None
-    
-    def _render_example_questions(self):
-        """Render example questions"""
-        st.markdown("**💡 Example Questions:**")
-        example_cols = st.columns(3)
-        examples = [
-            "What are the main trends in this data?",
-            "Show me correlations between variables",
-            "Summarize the key insights",
-            "What patterns do you see?",
-            "Are there any outliers?",
-            "Describe the data distribution"
-        ]
     
     
         for i, example in enumerate(examples):

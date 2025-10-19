@@ -7,6 +7,7 @@ from typing import Dict, List, Any, Optional
 
 from ...models.query_models import QueryHistory
 from ...services.session_service import SessionService
+from ...services.visualization_service import VisualizationService
 
 
 class HistoryComponent:
@@ -14,6 +15,7 @@ class HistoryComponent:
     
     def __init__(self, session_service: SessionService):
         self.session_service = session_service
+        self.viz_service = VisualizationService()
     
     def render_sidebar(self):
         """Render the history component in the sidebar"""
@@ -47,6 +49,10 @@ class HistoryComponent:
                         st.rerun()
             else:
                 st.info("No queries yet. Start by asking a question!")
+        
+        # Visualization History
+        with st.expander("📊 Visualizations History", expanded=True):
+            self._render_visualization_history()
     
     def _render_history_item(self, item: QueryHistory):
         """Render a single history item with collapsible response"""
@@ -200,3 +206,130 @@ class HistoryComponent:
                         st.error("Failed to import history.")
                 except Exception as e:
                     st.error(f"Error importing history: {str(e)}")
+    
+    def _render_visualization_history(self):
+        """Render visualization history from Firebase"""
+        # Get current user
+        user_id = st.session_state.get('user', {}).get('uid')
+        if not user_id:
+            st.info("Please log in to view visualization history")
+            return
+        
+        # Search functionality
+        search_term = st.text_input("🔍 Search visualizations:", key="viz_search")
+        
+        # Get visualizations from Firebase
+        visualizations = self.viz_service.get_user_visualizations(user_id, limit=20)
+        
+        if not visualizations:
+            st.info("No visualizations yet. Generate some charts to see them here!")
+            return
+        
+        # Filter visualizations based on search
+        filtered_viz = visualizations
+        if search_term:
+            filtered_viz = [
+                viz for viz in visualizations
+                if search_term.lower() in viz.get('query', '').lower()
+            ]
+        
+        # Display visualizations
+        for viz in filtered_viz:
+            self._render_visualization_item(viz)
+    
+    def _render_visualization_item(self, viz: Dict[str, Any]):
+        """Render a single visualization item"""
+        with st.container():
+            # Header with timestamp and query
+            # Format the created_at timestamp properly
+            created_at = viz.get('created_at', 'Unknown date')
+            if hasattr(created_at, 'strftime'):
+                # It's a datetime object, format it
+                formatted_date = created_at.strftime('%b %d %H:%M')
+            elif isinstance(created_at, str):
+                # It's already a string, use it as is
+                formatted_date = created_at[:10] + ' ' + created_at[11:16] if len(created_at) > 16 else created_at
+            else:
+                # Fallback
+                formatted_date = 'Unknown date'
+            
+            st.markdown(f"""
+            <div style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin: 5px 0; background-color: #f9f9f9;">
+                <div style="color: #1f4e79; font-weight: 600; margin-bottom: 0.5rem;">
+                    📅 {formatted_date}
+                </div>
+                <div style="color: #333; line-height: 1.4;">
+                    <strong>❓ Query:</strong> {viz.get('query', 'No query')[:60]}{'...' if len(viz.get('query', '')) > 60 else ''}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Check current view state
+            view_key = f"view_viz_{viz.get('id', 'unknown')}"
+            is_viewing = st.session_state.get(view_key, False)
+            
+            # Action buttons
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                button_text = "🙈 Hide" if is_viewing else "👁️ View"
+                if st.button(button_text, key=f"view_viz_{viz.get('id', 'unknown')}"):
+                    st.session_state[view_key] = not is_viewing
+                    st.rerun()
+            
+            with col2:
+                if st.button("👍", key=f"thumbs_up_{viz.get('id', 'unknown')}"):
+                    self.viz_service.update_visualization_helpfulness(
+                        st.session_state.get('user', {}).get('uid'), 
+                        viz.get('id'), 
+                        True
+                    )
+                    st.success("Marked as helpful!")
+                    st.rerun()
+            
+            with col3:
+                if st.button("👎", key=f"thumbs_down_{viz.get('id', 'unknown')}"):
+                    self.viz_service.update_visualization_helpfulness(
+                        st.session_state.get('user', {}).get('uid'), 
+                        viz.get('id'), 
+                        False
+                    )
+                    st.success("Marked as not helpful!")
+                    st.rerun()
+            
+            with col4:
+                if st.button("🗑️", key=f"delete_{viz.get('id', 'unknown')}"):
+                    if self.viz_service.delete_visualization(
+                        st.session_state.get('user', {}).get('uid'), 
+                        viz.get('id')
+                    ):
+                        st.success("Visualization deleted!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to delete visualization")
+            
+            # Show visualization if view is active
+            if is_viewing:
+                st.markdown("**📊 Visualization:**")
+                
+                # Check if it's an image URL or HTML content
+                file_url = viz.get('file_url', '')
+                if file_url:
+                    if file_url.endswith('.png') or file_url.endswith('.jpg') or file_url.endswith('.jpeg'):
+                        # Display image
+                        st.image(file_url, caption=viz.get('query', 'Generated visualization'))
+                    else:
+                        # Display HTML content
+                        import streamlit.components.v1 as components
+                        try:
+                            import requests
+                            response = requests.get(file_url)
+                            if response.status_code == 200:
+                                components.html(response.text, height=500, scrolling=True)
+                            else:
+                                st.error("Could not load visualization")
+                        except Exception as e:
+                            st.error(f"Error loading visualization: {str(e)}")
+                else:
+                    st.warning("No visualization file found")
+                
+                st.markdown("---")

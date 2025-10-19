@@ -136,6 +136,7 @@ serviceAccountKey.json
 firebase-service-account.json
 firebase-adminsdk-*.json
 firebase-config.json
+*Firebase Admin SDK.json
 
 # Data files
 *.csv

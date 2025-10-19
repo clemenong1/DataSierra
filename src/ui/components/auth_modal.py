@@ -25,7 +25,13 @@ class AuthModalComponent:
         with col3:
             # Check if Firebase is properly initialized
             if not self.auth_service.is_initialized():
-                st.error("🔧 Auth not configured")
+                # Show a more helpful error message when possible
+                init_err = getattr(self.auth_service, 'initialization_error', None)
+                if init_err:
+                    st.error(f"🔧 Auth not configured: {init_err}")
+                else:
+                    st.error("🔧 Auth not configured")
+                st.markdown("If you're running locally, set the GOOGLE_APPLICATION_CREDENTIALS env var or place a service account JSON in the project root. See README for details.")
                 return False
             
             if self.auth_service.is_authenticated():

@@ -167,7 +167,6 @@ class MainPage:
             
             **Tips:**
             - Be specific in your questions
-            - Use the example questions as starting points
             - Check the query history for previous insights
             """)
     

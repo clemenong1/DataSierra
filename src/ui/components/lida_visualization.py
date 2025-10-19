@@ -2,12 +2,20 @@ import streamlit as st
 import pandas as pd
 from typing import Dict, Any, Optional
 import streamlit.components.v1 as components
+import plotly.graph_objects as go
+import plotly.express as px
+import io
+import base64
 from src.services.lida_visualization_service import LidaVisualizationService
+from src.services.firebase_storage_service import FirebaseStorageService
+from src.services.visualization_service import VisualizationService
 from src.models.file_models import ProcessedFile
 
 class LidaVisualizationComponent:
     def __init__(self):
         self.lida_service = LidaVisualizationService()
+        self.storage_service = FirebaseStorageService()
+        self.viz_service = VisualizationService()
     
     def render(self, processed_files: Dict[str, ProcessedFile]):
         if not processed_files:
@@ -45,13 +53,11 @@ class LidaVisualizationComponent:
                 try:
                     result = self._generate_visualization(processed_files, user_prompt)
                     if result["success"]:
-                        self._display_visualization(result)
+                        self._display_visualization(result, user_prompt, processed_files)
                     else:
                         st.error(f"❌ {result['error']}")
                 except Exception as e:
                     st.error(f"❌ Error generating visualization: {str(e)}")
-        
-        self._display_previous_visualizations()
     
     def _generate_visualization(self, processed_files: Dict[str, ProcessedFile], user_prompt: str) -> Dict[str, Any]:
         try:
@@ -94,7 +100,7 @@ class LidaVisualizationComponent:
                 "error": f"Failed to generate visualization: {str(e)}"
             }
     
-    def _display_visualization(self, result: Dict[str, Any]):
+    def _display_visualization(self, result: Dict[str, Any], user_prompt: str, processed_files: Dict[str, Any]):
         st.success("✅ Visualization generated successfully!")
         
         charts = result.get("charts", [])
@@ -109,7 +115,6 @@ class LidaVisualizationComponent:
                 try:
                     if chart.get('code'):
                         # Get the data from the first processed file
-                        processed_files = st.session_state.get('processed_files', {})
                         if not processed_files:
                             st.error("No data available for visualization.")
                             return
@@ -121,18 +126,12 @@ class LidaVisualizationComponent:
                         # Set up execution context with all necessary imports and data
                         exec_globals = {
                             "pd": pd, 
-                            "px": None, 
-                            "go": None,
+                            "px": px, 
+                            "go": go,
                             "data": data,
                             "plt": None
                         }
                         exec_locals = {}
-                        
-                        # Import plotly modules
-                        import plotly.express as px
-                        import plotly.graph_objects as go
-                        exec_globals["px"] = px
-                        exec_globals["go"] = go
                         
                         # Execute the chart code
                         exec(chart['code'], exec_globals, exec_locals)
@@ -145,7 +144,11 @@ class LidaVisualizationComponent:
                                 break
                         
                         if fig is not None:
+                            # Display the chart
                             st.plotly_chart(fig, use_container_width=True)
+                            
+                            # Generate chart image and save to Firebase
+                            self._save_chart_to_firebase(fig, chart, user_prompt, i)
                         else:
                             st.code(chart['code'], language='python')
                             st.info("Chart code generated but couldn't find the figure. Check the code above.")
@@ -162,27 +165,70 @@ class LidaVisualizationComponent:
                         st.code(chart.get('code', ''), language='python')
                 
                 with col2:
-                    if st.button(f"🗑️ Remove {i+1}", key=f"remove_{i}"):
-                        if "generated_visualizations" in st.session_state:
-                            st.session_state.generated_visualizations = [
-                                v for v in st.session_state.generated_visualizations 
-                                if v != st.session_state.generated_visualizations[-1]
-                            ]
-                        st.rerun()
+                    if st.button(f"💾 Save to History {i+1}", key=f"save_{i}"):
+                        # Re-save this specific chart to Firebase
+                        self._save_chart_to_firebase(None, chart, user_prompt, i)
     
-    def _display_previous_visualizations(self):
-        if "generated_visualizations" in st.session_state and st.session_state.generated_visualizations:
-            st.markdown("---")
-            st.markdown("### 📚 Previous Visualizations")
+    def _save_chart_to_firebase(self, fig, chart: Dict[str, Any], user_prompt: str, chart_index: int):
+        """Save a chart image to Firebase Storage and metadata to Firestore"""
+        try:
+            # Get current user
+            user_id = st.session_state.get('user', {}).get('uid')
+            if not user_id:
+                st.warning("Please log in to save visualizations")
+                return
             
-            for i, viz in enumerate(reversed(st.session_state.generated_visualizations)):
-                with st.expander(f"🕒 {viz['timestamp'].strftime('%H:%M:%S')} - {viz['prompt'][:50]}...", expanded=False):
-                    st.write(f"**Prompt:** {viz['prompt']}")
-                    st.write(f"**File:** {viz['file_used']}")
-                    
-                    charts = viz.get("charts", [])
-                    for j, chart in enumerate(charts):
-                        st.markdown(f"**Chart {j+1}:** {chart.get('title', 'Untitled')}")
-                        if st.button(f"🔄 Regenerate Chart {j+1}", key=f"regen_{i}_{j}"):
-                            st.session_state.regenerate_prompt = viz['prompt']
-                            st.rerun()
+            # Generate filename
+            filename = f"{chart.get('title', 'chart').replace(' ', '_')}_{chart_index + 1}.png"
+            
+            if fig is not None:
+                # Convert Plotly figure to PNG image
+                img_bytes = fig.to_image(format="png", width=800, height=600)
+                
+                # Upload image to Firebase Storage
+                upload_result = self.storage_service.upload_chart_image(
+                    image_data=img_bytes,
+                    filename=filename,
+                    user_id=user_id,
+                    query=user_prompt
+                )
+            else:
+                # If no figure available, create a simple HTML representation
+                html_content = f"""
+                <html>
+                <head><title>{chart.get('title', 'Generated Chart')}</title></head>
+                <body>
+                    <h2>{chart.get('title', 'Generated Chart')}</h2>
+                    <p><strong>Description:</strong> {chart.get('description', 'No description available')}</p>
+                    <p><strong>Prompt:</strong> {user_prompt}</p>
+                    <h3>Code:</h3>
+                    <pre><code>{chart.get('code', 'No code available')}</code></pre>
+                    <p><em>Generated by DataSierra LIDA</em></p>
+                </body>
+                </html>
+                """
+                
+                # Upload HTML to Firebase Storage
+                upload_result = self.storage_service.upload_visualization(
+                    file_data=html_content.encode('utf-8'),
+                    filename=filename.replace('.png', '.html'),
+                    user_id=user_id,
+                    query=user_prompt,
+                    content_type='text/html'
+                )
+            
+            if upload_result:
+                # Save to Firestore
+                viz_id = self.viz_service.save_visualization(user_id, upload_result)
+                if viz_id:
+                    st.success(f"✅ Chart saved: {chart.get('title', 'Generated Chart')}")
+                else:
+                    st.error("❌ Failed to save chart to database")
+            else:
+                st.error("❌ Failed to upload chart to storage")
+                
+        except Exception as e:
+            st.error(f"❌ Error saving chart: {str(e)}")
+    
+    # Previous visualizations are now handled by the history component
+    # which pulls data from Firebase instead of local storage
