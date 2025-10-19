@@ -57,38 +57,32 @@ DataSierra is a modern, clean, and well-architected web application that allows 
 2. **Install dependencies** (use Python 3.11):
    ```bash
    # Make sure you're using Python 3.9+
-   python3.9 --version
+   python3.11 --version
    
    # Install dependencies with Python 3.9
-   python3.9 -m pip install -r requirements.txt
+   python3.11 -m pip install -r requirements.txt
    ```
 
    Alternatively, you can create a python venv
    ```bash
-   python3.9 -m venv .venv
+   python3.11 -m venv .venv
    ```
 
 3. **Set up environment variables**:
-   Create a `.env` file in your project root:
+   Create a `.env` file in your project root and add your Firebase keys and OpenAI key.
    ```bash
-   touch .env
+   OPENAI_API_KEY=
+   
+   # Firebase Configuration (from Service Account JSON)
+   FIREBASE_PROJECT_ID=
+   FIREBASE_PRIVATE_KEY_ID=
+   FIREBASE_PRIVATE_KEY=
+   FIREBASE_CLIENT_EMAIL=
+   FIREBASE_CLIENT_ID=
+   FIREBASE_AUTH_URI=
+   FIREBASE_TOKEN_URI=
    ```
    
-   Add the following variables to your `.env` file:
-   ```bash
-   # OpenAI Configuration
-   OPENAI_API_KEY=your_openai_api_key_here
-   
-   # Firebase Configuration
-   FIREBASE_PROJECT_ID=your_firebase_project_id
-   FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
-   FIREBASE_PRIVATE_KEY="your_firebase_private_key"
-   FIREBASE_CLIENT_EMAIL=your_firebase_client_email
-   FIREBASE_CLIENT_ID=your_firebase_client_id
-   FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-   FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-   ```
-
 4. **Set up Firebase**:
    - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
    - Enable Firestore database
@@ -97,52 +91,16 @@ DataSierra is a modern, clean, and well-architected web application that allows 
    - Extract the values from the JSON file and add them to your `.env` file
    - Alternatively, place the downloaded `serviceAccountKey.json` file in your project root
 
-5. **Verify your environment** (optional but recommended):
-   ```bash
-   # Check Python version and dependencies
-   python3.11 check_environment.py
-   ```
+5. **Set up OpenAI**:
+   - Create a new Project at [OpenAI][https://platform.openai.com/]
+   - Generate a new API Key
+   - Place the API key into the `.env` file
 
 6. **Test the installation**:
    ```bash
    # Run with Python 3.11 to ensure all features work
    python3.11 -m streamlit run app.py
    ```
-
-## 🚀 Usage
-
-### Option 1: Streamlit Web App (Recommended)
-
-1. **Start the Streamlit app**:
-   ```bash
-   # Use Python 3.11 for full functionality
-   python3.11 -m streamlit run app.py
-   ```
-
-2. **Open your browser** and navigate to `http://localhost:8501`
-
-3. **Upload your files** and start asking questions!
-
-### Option 2: Programmatic Usage
-
-```python
-from src.services.ai.ai_service import AIService
-from src.services.file.file_service import FileService
-
-# Initialize services
-file_service = FileService()
-ai_service = AIService()
-
-# Process your files and ask questions
-files = file_service.process_uploaded_files(uploaded_files)
-response = ai_service.process_query(
-    query="What are the main trends in this data?",
-    files=files,
-    session_id="my_session"
-)
-
-print(response['answer'])
-```
 
 ## 🏗️ Architecture
 
